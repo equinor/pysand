@@ -1,19 +1,19 @@
-# Sand
+# pySand
 Python package with sand related calculations.
 
 ### Installation instructions
 ```
-pip install git+https://github.com/equinor/sand.git
+pip install pysand
 ```
 ##### Removal
 
 ```
-pip uninstall sand
+pip uninstall pysand
 ```
 
 ### Examples of use
 ```
-from sand.erosion import bend
+from pysand.erosion import bend
 ```
 
 ### Others
