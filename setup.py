@@ -1,13 +1,13 @@
 from setuptools import setup
 
-exec(open('sand/version.py').read())
+exec(open('pysand/version.py').read())
 
-setup(name='sand',
+setup(name='pysand',
       version=__version__,
       description='Sand related calculations',
       author='Thorjan Knudsvik',
       author_email='thokn@equinor.com',
-      url='https://github.com/equinor/sand',
-      packages=['sand'],
+      url='https://github.com/equinor/pysand',
+      packages=['pysand'],
       install_requires=['numpy', 'scipy']
 )
