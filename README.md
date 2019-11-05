@@ -5,7 +5,12 @@ Python package with sand related calculations.
 ```
 pip install pysand
 ```
-##### Removal
+###### Upgrade
+
+```
+pip install pysand --upgrade
+```
+###### Removal
 
 ```
 pip uninstall pysand
@@ -15,5 +20,3 @@ pip uninstall pysand
 ```
 from pysand.erosion import bend
 ```
-
-### Others
