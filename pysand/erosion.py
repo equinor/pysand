@@ -1,6 +1,34 @@
 import numpy as np
+import pandas as pd
+import logging
+import pysand.exceptions as exc
 
+logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
+
+
+def validate_inputs(v_m, Q_s, rho_m, mu_m=1.5e-5, GF=3, D=0.5, d_p=1):
+    """
+    Validation of all input parameters that go into erosion models;
+    Some parameters are passed as Optional, since models take only specific input arguments.
+    """
+
+    for i in [v_m, Q_s, rho_m, mu_m]:
+        if not isinstance(i, (float, int, pd.Series)):
+            raise exc.FunctionInputFail('{} is not a number'.format(i))
+
+    if None in [GF, D, d_p]:
+        raise exc.FunctionInputFail("GF, D, or d_p are None and has not been configured correctly")
+    elif (d_p < 0.02) or (d_p > 5):
+        logger.warning(
+            'The particle diameter, d_p, is outside RP-O501 model boundaries.')
+    elif (D < 0.01) or (D > 1):
+        logger.warning(
+            'The pipe inner diameter, D, is outside RP-O501 model boundaries.')
+    elif v_m is None or rho_m is None or mu_m is None or Q_s is None:
+        raise exc.FunctionInputFail(
+            'v_m, rho_m, mu_m or Q_s is None and has not been configured correctly')
+
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
     '''
