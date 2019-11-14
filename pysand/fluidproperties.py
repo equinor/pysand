@@ -72,4 +72,4 @@ def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
 
     # Calculations
     mu_m = (mu_o + Qw/Qo * mu_w + Qg/Qo*P0*T*Z / (P * T0) * mu_g) / (1 + Qw/Qo + Qg/Qo*P0*T*Z / (P * T0))
-    return np.round(mu_m, 2)
+    return np.round(mu_m, 6)
