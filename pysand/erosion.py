@@ -14,20 +14,17 @@ def validate_inputs(v_m, Q_s, rho_m, mu_m=1.5e-5, GF=3, D=0.5, d_p=1):
     """
 
     for i in [v_m, Q_s, rho_m, mu_m]:
-        if not isinstance(i, (float, int, pd.Series)):
-            raise exc.FunctionInputFail('{} is not a number'.format(i))
+        if not isinstance(i, (float, int, np.ndarray, pd.Series)):
+            raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
 
-    if None in [GF, D, d_p]:
-        raise exc.FunctionInputFail("GF, D, or d_p are None and has not been configured correctly")
-    elif (d_p < 0.02) or (d_p > 5):
-        logger.warning(
-            'The particle diameter, d_p, is outside RP-O501 model boundaries.')
-    elif (D < 0.01) or (D > 1):
-        logger.warning(
-            'The pipe inner diameter, D, is outside RP-O501 model boundaries.')
-    elif v_m is None or rho_m is None or mu_m is None or Q_s is None:
-        raise exc.FunctionInputFail(
-            'v_m, rho_m, mu_m or Q_s is None and has not been configured correctly')
+    for j in [GF, D, d_p]:
+        if not isinstance(j, (int, float)):
+            raise exc.FunctionInputFail('{} is not a number'.format(j))
+
+    if (d_p < 0.02) or (d_p > 5):
+        logger.warning('The particle diameter, d_p, is outside RP-O501 model boundaries.')
+    if (D < 0.01) or (D > 1):
+        logger.warning('The pipe inner diameter, D, is outside RP-O501 model boundaries.')
 
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
@@ -141,6 +138,12 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     :return: E_up: Erosion rate flow facing part of weld [mm/year]
     :return: E_down: Erosion rate downstream of weld [mm/year]
     '''
+
+    # Unique input validation
+    if not isinstance(h, (int, float)):
+        raise exc.FunctionInputFail('{} is not a number'.format(h))
+
+    # Common input validation
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
     At = A_pipe / np.sin(a_rad)  # Area exposed to erosion (4.23)
@@ -176,6 +179,13 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
     :param Dm: Manifold diameter [m]
     :return: Manifold erosion rate [mm/year]
     '''
+
+    # Unique input validation
+    if not isinstance(Dm, (int, float)):
+        raise exc.FunctionInputFail('{} is not a number'.format(Dm))
+
+    # Common input validation
+
     R = Dm / D - 0.5  # Synthetic bend radius
     return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p)
 
@@ -196,6 +206,15 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
     :return: Reducer erosion rate [mm/year]
     '''
+
+    # Unique input validation
+    for d in [D1, D2]:
+        if not isinstance(d, (int, float)):
+            raise exc.FunctionInputFail('{} is not a number'.format(d))
+
+    # Common input validation
+
+
     a_rad = np.deg2rad(alpha)
     At = np.pi/(4 * np.sin(a_rad))*(D1**2-D2**2)  # Characteristic particle impact area [m2] (4.50)
     Aratio = 1 - (D2/D1)**2  # Area aspect ratio (4.51)
