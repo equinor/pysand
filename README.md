@@ -25,3 +25,6 @@ Jupyter Notebooks with example usage can be found in the example directory:
 * [Acoustic sand detector](examples/asd.ipynb)
 * [Erosion](examples/erosion.ipynb)
 * [Fluid properties](examples/fluidproperties.ipynb)
+
+Bringing them all together:
+* [All pySand modules](examples/all_modules.ipynb)
