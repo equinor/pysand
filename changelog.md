@@ -1,5 +1,5 @@
 # 1.1
-* Added examples folder and notebooks (asd, erosion)
+* Added examples folder and notebooks (asd, erosion, fluid properties)
 * Better readme file with added logo
 
 # 1.0.1

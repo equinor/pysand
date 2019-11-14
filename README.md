@@ -24,3 +24,4 @@ pip uninstall pysand
 Jupyter Notebooks with example usage can be found in the example directory:
 * [Acoustic sand detector](examples/asd.ipynb)
 * [Erosion](examples/erosion.ipynb)
+* [Fluid properties](examples/fluidproperties.ipynb)
