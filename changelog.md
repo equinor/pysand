@@ -1,7 +1,8 @@
 # 1.1
 * Fixed calculation error for blinded tees
-* Added examples folder and notebooks (asd, erosion, fluid properties)
+* Added examples folder and notebooks
 * Better readme file with added logo
+* Increased decimals on mix viscosity
 
 # 1.0.1
 * Modified setup file metadata for PyPi distribution
