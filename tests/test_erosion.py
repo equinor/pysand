@@ -15,7 +15,7 @@ def test_bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, E):
 
 
 # Blinded tees #
-tee_validation = [(15, 513.3, 4.02e-4, 2, 2, 0.15, 0.25, pytest.approx(107.988))]
+tee_validation = [(30, 400, 1e-3, .1, 2, 0.1, 0.3, pytest.approx(0.1704876))]
 @pytest.mark.parametrize('v_m, rho_m, mu_m, Q_s, GF, D, d_p, E', tee_validation)
 def test_tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, E):
     assert tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p) == E
