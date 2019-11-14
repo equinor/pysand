@@ -1,4 +1,5 @@
 # 1.1
+* Fixed calculation error for blinded tees
 * Added examples folder and notebooks (asd, erosion, fluid properties)
 * Better readme file with added logo
 
