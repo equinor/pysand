@@ -6,25 +6,62 @@ import pysand.exceptions as exc
 logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
 
-
-def validate_inputs(v_m, Q_s, rho_m=30, mu_m=1.5e-5, GF=3, D=0.5, d_p=1):
+def validate_inputs(**kwargs):
     """
     Validation of all input parameters that go into erosion models;
-    Some parameters are passed as Optional, since models take only specific input arguments.
+    Besides validating for illegal data input, model parameters are limited RP-O501 boundaries:
+    -------------------------------------------------------------------
+    Model parameter         ---   Lower boundary   ---   Upper boundary
+    -------------------------------------------------------------------
+    Particle diameter       ---        0.02        ---        5     ---
+    Pipe inner diameter(D)  ---        0.01        ---        1     ---
+    Particle impact angle   ---        0           ---        90    ---
+    Bend radius             ---        0.5         ---        50    ---
+    Manifold diameter       ---        D           ---              ---
+    Heoght of the weld      ---        0           ---        D     ---
+    -------------------------------------------------------------------
+    Geometry factor can only be 1, 2, 3 or 4
     """
 
-    for i in [v_m, Q_s, rho_m, mu_m]:
-        if not isinstance(i, (float, int, np.ndarray, pd.Series)):
-            raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+    for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        if i in kwargs:
+            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)):
+                raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
 
-    for j in [GF, D, d_p]:
-        if not isinstance(j, (int, float)):
-            raise exc.FunctionInputFail('{} is not a number'.format(j))
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+        if j in kwargs:
+            if not isinstance(kwargs[j], (int, float)):
+                raise exc.FunctionInputFail('{} is not a number'.format(j))
 
-    if (d_p < 0.02) or (d_p > 5):
-        logger.warning('The particle diameter, d_p, is outside RP-O501 model boundaries.')
-    if (D < 0.01) or (D > 1):
-        logger.warning('The pipe inner diameter, D, is outside RP-O501 model boundaries.')
+    for k in ['D', 'D1', 'D2']:
+        if k in kwargs:
+            if (kwargs[k] < 0.01) or (kwargs[k] > 1):
+                logger.warning('Pipe inner diameter, {}, is outside RP-O501 model boundaries.'.format(k))
+
+    if 'd_p' in kwargs:
+        if (kwargs['d_p'] < 0.02) or (kwargs['d_p'] > 5):
+            logger.warning('Particle diameter, d_p, is outside RP-O501 model boundaries.')
+    if 'GF' in kwargs:
+        if kwargs['GF'] not in [1, 2, 3, 4]:
+            logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
+    if 'alpha' in kwargs:
+        if (kwargs['alpha'] < 0) or (kwargs['alpha'] > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries.')
+
+    # bend
+    if 'R' in kwargs:
+        if (kwargs['R'] > 0.5) or (kwargs['R'] < 50):
+            logger.warning('Bend radius, R, is outside RP-O501 model boundaries.')
+
+    # manifold
+    if 'Dm' in kwargs:
+        if kwargs['Dm'] < kwargs['D']:
+            logger.warning('Manifold diameter, Dm, is expected to be bigger than branch pipe diameter, D')
+
+    # welded joint
+    if 'h' in kwargs:
+        if (kwargs['h'] < 0) or (kwargs['h'] > kwargs['D']):
+            logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
 
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
@@ -45,7 +82,7 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
     :return: E = Erosion rate [mm/y]
     '''
 
-    # Common input validation
+    # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
     validate_inputs(**kwargs)
 
@@ -88,7 +125,7 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
     :return: E: Erosion rate [mm/y]
     '''
 
-    # Common input validation
+    # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
     validate_inputs(**kwargs)
 
@@ -127,7 +164,7 @@ def straight_pipe(v_m, Q_s, D):
     :return: E: Erosion rate [mm/y]
     '''
 
-    # Common input validation
+    # Input validation
     kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
     validate_inputs(**kwargs)
 
@@ -152,12 +189,8 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     :return: E_down: Erosion rate downstream of weld [mm/year]
     '''
 
-    # Unique input validation
-    if not isinstance(h, (int, float)):
-        raise exc.FunctionInputFail('{} is not a number'.format(h))
-
-    # Common input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p}
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
     validate_inputs(**kwargs)
 
     A_pipe = np.pi * D**2 / 4
@@ -196,12 +229,8 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
     :return: Manifold erosion rate [mm/year]
     '''
 
-    # Unique input validation
-    if not isinstance(Dm, (int, float)):
-        raise exc.FunctionInputFail('{} is not a number'.format(Dm))
-
-    # Common input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': D}
     validate_inputs(**kwargs)
 
     R = Dm / D - 0.5  # Synthetic bend radius
@@ -225,13 +254,8 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     :return: Reducer erosion rate [mm/year]
     '''
 
-    # Unique input validation
-    for d in [D1, D2]:
-        if not isinstance(d, (int, float)):
-            raise exc.FunctionInputFail('{} is not a number'.format(d))
-
-    # Common input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'GF': GF, 'd_p': d_p}
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
     validate_inputs(**kwargs)
 
     a_rad = np.deg2rad(alpha)
@@ -261,8 +285,8 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
     :return:
     '''
 
-    # Common input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p}
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'alpha': alpha}
     validate_inputs(**kwargs)
 
     a_rad = np.deg2rad(alpha)
