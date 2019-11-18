@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def validate_inputs(**kwargs):
     """
     Validation of all input parameters that go into erosion models;
-    Besides validating for illegal data input, model parameters are limited RP-O501 boundaries:
+    Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
     -------------------------------------------------------------------
     Model parameter         ---   Lower boundary   ---   Upper boundary
     -------------------------------------------------------------------
@@ -25,12 +25,12 @@ def validate_inputs(**kwargs):
 
     for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         if i in kwargs:
-            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)):
+            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
 
     for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
         if j in kwargs:
-            if not isinstance(kwargs[j], (int, float)):
+            if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
 
     for k in ['D', 'D1', 'D2']:
@@ -50,7 +50,7 @@ def validate_inputs(**kwargs):
 
     # bend
     if 'R' in kwargs:
-        if (kwargs['R'] > 0.5) or (kwargs['R'] < 50):
+        if (kwargs['R'] < 0.5) or (kwargs['R'] > 50):
             logger.warning('Bend radius, R, is outside RP-O501 model boundaries.')
 
     # manifold
@@ -230,7 +230,7 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': D}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
     validate_inputs(**kwargs)
 
     R = Dm / D - 0.5  # Synthetic bend radius
