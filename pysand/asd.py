@@ -1,25 +1,25 @@
 from scipy import interpolate
 
 
-def std_step_clampon(v_mix, GLR):
+def std_step_clampon(v_m, GLR):
     '''
     Standard step calculation for Clampon ASD's
-    :param v_mix: fluid mix velocity at ASD [m/s]
+    :param v_m: fluid mix velocity at ASD [m/s]
     :param GLR: Gas liquid ratio [Sm3/Sm3]
     :return: Standard step value
     '''
     # Standard Step values from Equinor wiki, Jan 18:
-    step_v_mix = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
+    step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
     step_oil = [0, 425, 1500, 2500, 3100, 4500, 5500, 8100, 11300, 16100, 22500]
     step_gas = [0, 525, 1500, 2500, 3200, 4800, 6500, 12320, 20740, 38196, 64980]
     # Linear interpolation functions for STEP
-    f_oil = interpolate.interp1d(step_v_mix, step_oil, fill_value='extrapolate')
-    f_gas = interpolate.interp1d(step_v_mix, step_gas, fill_value='extrapolate')
+    f_oil = interpolate.interp1d(step_v_m, step_oil, fill_value='extrapolate')
+    f_gas = interpolate.interp1d(step_v_m, step_gas, fill_value='extrapolate')
 
     if GLR < 150:
-        step = f_oil(v_mix)
+        step = f_oil(v_m)
     else:
-        step = f_gas(v_mix)
+        step = f_gas(v_m)
 
     if step < 0:
         print('Negative step')
@@ -28,10 +28,10 @@ def std_step_clampon(v_mix, GLR):
     return step
 
 
-def std_step_emerson(v_mix, GOR):
+def std_step_emerson(v_m, GOR):
     '''
     Standard step calculation for Emerson ASD's
-    :param v_mix: fluid mix velocity at ASD [m/s]
+    :param v_m: fluid mix velocity at ASD [m/s]
     :param GOR: Gas oil ratio [Sm3/Sm3]
     :return: Standard step value
     '''
@@ -42,7 +42,7 @@ def std_step_emerson(v_mix, GOR):
     else:
         E, F, G, H = 50, 48, 200, 1000
 
-    step = E * v_mix ** 3 + F * v_mix ** 2 + G * v_mix + H
+    step = E * v_m ** 3 + F * v_m ** 2 + G * v_m + H
 
     if step < 0:
         print('Negative step')

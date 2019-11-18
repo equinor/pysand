@@ -150,7 +150,7 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
         C1 = 1
     G = (gamma/gamma_c)**c  # Particle size correction factor (4.44)
     At = np.pi / 4 * D ** 2  # Characteristic particle impact area [m2] (4.45)
-    C_unit = 1000 * 3600 * 24 * 365.25
+    C_unit = 3600 * 24 * 365.25  # (4.46) 1e-3 lower due to g instead of kg
     E = K * v_m**n / (rho_t * At) * G * C1 * GF * Q_s * C_unit  # Erosion rate [mm/y] (4.48)
     return E
 

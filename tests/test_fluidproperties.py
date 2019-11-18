@@ -14,7 +14,7 @@ def test_mix_density(P, T, Qo, Qw, Qg, rho_o, rho_w, MW, Z, E):
     assert mix_density(P, T, Qo, Qw, Qg, rho_o, rho_w, MW, Z) == E
 
 
-viscosity_validation = [(40, 80, 4000, 300, 400000, 2, 1, 1e-3, .9, 0.54)]
+viscosity_validation = [(40, 80, 4000, 300, 400000, 2, 1, 1e-3, .9, 0.538166)]
 @pytest.mark.parametrize('P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z, E', viscosity_validation)
 def test_mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z, E):
     assert mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z) == E
