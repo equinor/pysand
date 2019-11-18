@@ -1,3 +1,7 @@
+
+# 1.2
+* Added input validation for erosion models (with tests)
+
 # 1.1
 * Fixed calculation error for blinded tees
 * Added examples folder and notebooks

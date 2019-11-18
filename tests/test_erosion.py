@@ -1,6 +1,91 @@
 import pytest
-from pysand.erosion import bend, tee, straight_pipe, welded_joint, manifold, reducer, probes
+import numpy as np
+import pandas as pd
+import pysand.exceptions as exc
+import logging
+from pysand.erosion import validate_inputs, bend, tee, straight_pipe, welded_joint, manifold, reducer, probes
 
+def test_validate_inputs(caplog):
+
+    # Testing input throws exception throws exception
+    kwargs = {'v_m': 29.3, 'rho_m': 30, 'mu_m': 1.5e-5, 'Q_s': 2400*1000/86400/365}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_S']:
+        for non_number in [None, 'string', np.nan]:
+            kwargs[inp] = non_number
+            with pytest.raises(exc.FunctionInputFail) as excinfo:
+                validate_inputs(**kwargs)
+
+    kwargs = {'R': 29.3, 'GF': 30, 'D': 1.5e-5, 'd_p': 1, 'h': 30, 'Dm': 30, 'D1': 30, 'D2': 30}
+    for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+        for non_number in [None, 'string', np.nan, pd.Series().any()]:
+            kwargs[inp] = non_number
+            with pytest.raises(exc.FunctionInputFail) as excinfo:
+                validate_inputs(**kwargs)
+
+    # Test pipe inner diameter boundaries
+    kwargs = {'D': 1, 'D1': 1, 'D2': 1}
+    for inp in ['D', 'D1', 'D2']:
+        for illegal_input in [0.005, 5]:
+            kwargs[inp] = illegal_input
+            with caplog.at_level(logging.WARNING):
+                validate_inputs(**kwargs)
+                info = [record for record in caplog.records if record.levelname == 'WARNING']
+                assert any(
+                    "Pipe inner diameter, {}, is outside RP-O501 model boundaries.".format(inp)
+                    in s.message for s in info)
+
+    # Test particle diameter boundaries
+    kwargs = {'d_p': 1}
+    for illegal_input in [0.01, 6]:
+        kwargs['d_p'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Particle diameter, d_p, is outside RP-O501 model boundaries." in s.message for s in info)
+
+    # Test geometry factor limitations
+    kwargs = {'GF': 6}
+    with caplog.at_level(logging.WARNING):
+        validate_inputs(**kwargs)
+    assert "Geometry factor, GF, can only be 1, 2, 3 or 4" in str(caplog.records)
+
+    # Test alpha boundaries
+    kwargs = {'alpha': 1}
+    for illegal_input in [-1, 91]:
+        kwargs['alpha'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries." in s.message for s in info)
+
+    # Test bend radius boundaries
+    kwargs = {'R': 1}
+    for illegal_input in [0.1, 51]:
+        kwargs['R'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Bend radius, R, is outside RP-O501 model boundaries." in s.message for s in info)
+
+    # Test manifold diameter against branch pipe diameter
+    kwargs = {'Dm': 0.5, 'D': 0.8}
+    with caplog.at_level(logging.WARNING):
+        validate_inputs(**kwargs)
+    assert "Manifold diameter, Dm, is expected to be bigger than branch pipe diameter, D" in str(caplog.records)
+
+    # Test height of the weld boundaries
+    kwargs = {'h': 0.01, 'D': 0.8}
+    for illegal_input in [-1, 1]:
+        kwargs['h'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Height of the weld, h, must positive number not exceeding pipe inner diameter size, D"
+                in s.message for s in info)
 
 # Pipe bends #
 # Bend validation 1 based on the model validations in DNVGL RP-O501, Aug 2015

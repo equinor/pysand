@@ -1,6 +1,68 @@
 import numpy as np
+import pandas as pd
+import logging
+import pysand.exceptions as exc
 
+logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
+
+def validate_inputs(**kwargs):
+    """
+    Validation of all input parameters that go into erosion models;
+    Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
+    -------------------------------------------------------------------
+    Model parameter         ---   Lower boundary   ---   Upper boundary
+    -------------------------------------------------------------------
+    Particle diameter       ---        0.02        ---        5     ---
+    Pipe inner diameter(D)  ---        0.01        ---        1     ---
+    Particle impact angle   ---        0           ---        90    ---
+    Bend radius             ---        0.5         ---        50    ---
+    Manifold diameter       ---        D           ---              ---
+    Heoght of the weld      ---        0           ---        D     ---
+    -------------------------------------------------------------------
+    Geometry factor can only be 1, 2, 3 or 4
+    """
+
+    for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        if i in kwargs:
+            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
+                raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+        if j in kwargs:
+            if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
+                raise exc.FunctionInputFail('{} is not a number'.format(j))
+
+    for k in ['D', 'D1', 'D2']:
+        if k in kwargs:
+            if (kwargs[k] < 0.01) or (kwargs[k] > 1):
+                logger.warning('Pipe inner diameter, {}, is outside RP-O501 model boundaries.'.format(k))
+
+    if 'd_p' in kwargs:
+        if (kwargs['d_p'] < 0.02) or (kwargs['d_p'] > 5):
+            logger.warning('Particle diameter, d_p, is outside RP-O501 model boundaries.')
+    if 'GF' in kwargs:
+        if kwargs['GF'] not in [1, 2, 3, 4]:
+            logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
+    if 'alpha' in kwargs:
+        if (kwargs['alpha'] < 0) or (kwargs['alpha'] > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries.')
+
+    # bend
+    if 'R' in kwargs:
+        if (kwargs['R'] < 0.5) or (kwargs['R'] > 50):
+            logger.warning('Bend radius, R, is outside RP-O501 model boundaries.')
+
+    # manifold
+    if 'Dm' in kwargs:
+        if kwargs['Dm'] < kwargs['D']:
+            logger.warning('Manifold diameter, Dm, is expected to be bigger than branch pipe diameter, D')
+
+    # welded joint
+    if 'h' in kwargs:
+        if (kwargs['h'] < 0) or (kwargs['h'] > kwargs['D']):
+            logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
+
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
     '''
@@ -19,6 +81,10 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :return: E = Erosion rate [mm/y]
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    validate_inputs(**kwargs)
 
     # Constants:
     C1 = 2.5  # Model geometry factor for pipe bends
@@ -59,6 +125,10 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
     :return: E: Erosion rate [mm/y]
     '''
 
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    validate_inputs(**kwargs)
+
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
     beta = rho_p / rho_m  # Ratio of particle to fluid density (4.38)
@@ -93,6 +163,11 @@ def straight_pipe(v_m, Q_s, D):
     :param D: Pipe diameter [m]
     :return: E: Erosion rate [mm/y]
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
+    validate_inputs(**kwargs)
+
     E = 2.5e-5 * v_m**2.6 * D**(-2) * Q_s / 1000
     return E
 
@@ -113,6 +188,11 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     :return: E_up: Erosion rate flow facing part of weld [mm/year]
     :return: E_down: Erosion rate downstream of weld [mm/year]
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
+    validate_inputs(**kwargs)
+
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
     At = A_pipe / np.sin(a_rad)  # Area exposed to erosion (4.23)
@@ -148,6 +228,11 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
     :param Dm: Manifold diameter [m]
     :return: Manifold erosion rate [mm/year]
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
+    validate_inputs(**kwargs)
+
     R = Dm / D - 0.5  # Synthetic bend radius
     return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p)
 
@@ -168,6 +253,11 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
     :return: Reducer erosion rate [mm/year]
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
+    validate_inputs(**kwargs)
+
     a_rad = np.deg2rad(alpha)
     At = np.pi/(4 * np.sin(a_rad))*(D1**2-D2**2)  # Characteristic particle impact area [m2] (4.50)
     Aratio = 1 - (D2/D1)**2  # Area aspect ratio (4.51)
@@ -194,6 +284,11 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
     :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
     :return:
     '''
+
+    # Input validation
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'alpha': alpha}
+    validate_inputs(**kwargs)
+
     a_rad = np.deg2rad(alpha)
     At = np.pi / 4 * D**2 * 1 / np.sin(a_rad)  # Eqv particle impact area for homogeneously distributed particles (4.58)
     C2 = 10 ** 6 * d_p / 1000 / (30 * rho_m ** .5)  # Particle size and fluid density correction factor (4.59)
