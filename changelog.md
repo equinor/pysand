@@ -1,3 +1,5 @@
+# 1.3
+* Added erosion probe sand quantification
 
 # 1.2
 * Added input validation for erosion models (with tests)
