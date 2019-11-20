@@ -1,5 +1,7 @@
 # 1.3
 * Added erosion probe sand quantification
+* Added erosion model for flexible pipes with interlock carcass
+* Added erosion model for choke gallery
 
 # 1.2
 * Added input validation for erosion models (with tests)
