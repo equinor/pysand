@@ -1,4 +1,4 @@
-<img src="resources/logo.png" align="center" title="pySand"/>
+<img src="https://raw.githubusercontent.com/equinor/pysand/master/resources/logo.png" align="center" title="pySand"/>
 
 PySand is a python package with sand management related calculations for oil and gas industry developed by Equinor.
 * Acoustic sand detectors standard calibration and quantification
