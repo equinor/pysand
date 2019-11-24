@@ -10,16 +10,19 @@ def validate_inputs(**kwargs):
     """
     Validation of all input parameters that go into erosion models;
     Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
-    -------------------------------------------------------------------
-    Model parameter         ---   Lower boundary   ---   Upper boundary
-    -------------------------------------------------------------------
-    Particle diameter       ---        0.02        ---        5     ---
-    Pipe inner diameter(D)  ---        0.01        ---        1     ---
-    Particle impact angle   ---        0           ---        90    ---
-    Bend radius             ---        0.5         ---        50    ---
-    Manifold diameter       ---        D           ---              ---
-    Heoght of the weld      ---        0           ---        D     ---
-    -------------------------------------------------------------------
+    -------------------------------------------------------------------------
+    Model parameter               ---   Lower boundary   ---   Upper boundary
+    -------------------------------------------------------------------------
+    Particle diameter             ---        0.02        ---        5     ---
+    Pipe inner diameter(D)        ---        0.01        ---        1     ---
+    Particle impact angle         ---        0           ---        90    ---
+    Bend radius                   ---        0.5         ---        50    ---
+    Manifold diameter             ---        D           ---              ---
+    Height of the weld            ---        0           ---        D     ---
+    Radius of choke gallery (Rc)  ---        0           ---              ---
+    Gap cage and choke body (gap) ---        0           ---        Rc    ---
+    Height of gallery (H)         ---        0           ---              ---
+    -------------------------------------------------------------------------
     Geometry factor can only be 1, 2, 3 or 4
     """
 
@@ -28,7 +31,7 @@ def validate_inputs(**kwargs):
             if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'Rc', 'gap', 'H']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -48,7 +51,7 @@ def validate_inputs(**kwargs):
         if (kwargs['alpha'] < 0) or (kwargs['alpha'] > 90):
             logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries.')
 
-    # bend
+    # bend/choke gallery
     if 'R' in kwargs:
         if (kwargs['R'] < 0.5) or (kwargs['R'] > 50):
             logger.warning('Bend radius, R, is outside RP-O501 model boundaries.')
@@ -62,6 +65,14 @@ def validate_inputs(**kwargs):
     if 'h' in kwargs:
         if (kwargs['h'] < 0) or (kwargs['h'] > kwargs['D']):
             logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
+
+    # choke gallery
+    for l in ['Rc, gap, h']:
+        if l in kwargs:
+            if not kwargs[j] > 0:
+                raise exc.FunctionInputFail('{} has to be larger than 0'.format(j))
+            if kwargs['gap'] > kwargs['Rc']:
+                raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(j))
 
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
@@ -337,6 +348,8 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2
     """
 
     # OBS, brittle!
+    kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
+    validate_inputs(**kwargs)
 
     Ag = 2 * H * gap  # Effective gallery area (table 4-5)
     C1_bend = 2.5  # Model geometry factor for pipe bends
