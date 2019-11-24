@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import pysand.exceptions as exc
 import logging
-from pysand.erosion import validate_inputs, bend, tee, straight_pipe, welded_joint, manifold, reducer, probes
+from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
+    welded_joint, manifold, reducer, probes, flexible, choke_gallery
 
 def test_validate_inputs(caplog):
 
@@ -188,3 +189,15 @@ probe_validation = [(30, 80, 1, 0.15, 0.3, 50, pytest.approx(2.22837)),
 @pytest.mark.parametrize('v_m, rho_m, Q_s, D, d_p, alpha, E', probe_validation)
 def test_probes(v_m, rho_m, Q_s, D, d_p, alpha, E):
     assert probes(v_m, rho_m, Q_s, D, d_p, alpha) == E
+
+# Flexible pipes with interlock carcass #
+flexible_validation = [(23, 350, 1e-4, .3, 15, .124, .2, pytest.approx(0.0871711))]
+@pytest.mark.parametrize('v_m, rho_m, mu_m, Q_s, mbr, D, d_p, E', flexible_validation)
+def test_flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p, E):
+    assert flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p) == E
+
+# Choke gallery #
+gallery_validation = [(30, 450, 5e-4, .7, 1, .15, .5, .15, .04, .15, 2e-9, 2.6, 7850, pytest.approx(15.48484))]
+@pytest.mark.parametrize('v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E', gallery_validation)
+def test_choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E):
+    assert choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=K, n=n, rho_t=rho_t) == E
