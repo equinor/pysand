@@ -36,17 +36,21 @@ def validate_inputs(**kwargs):
     for k in ['D', 'D1', 'D2']:
         if k in kwargs:
             if (kwargs[k] < 0.01) or (kwargs[k] > 1):
-                logger.warning('Pipe inner diameter, {}, is outside RP-O501 model boundaries.'.format(k))
+                logger.warning('Pipe inner diameter, {}, is outside RP-O501 model boundaries (0.01 - 1 m).'.format(k))
+            if not kwargs[k] > 0:
+                raise exc.FunctionInputFail(' Pipe inner diameter, {}, must be positive'.format(k))
 
     if 'd_p' in kwargs:
         if (kwargs['d_p'] < 0.02) or (kwargs['d_p'] > 5):
-            logger.warning('Particle diameter, d_p, is outside RP-O501 model boundaries.')
+            logger.warning('Particle diameter, d_p, is outside RP-O501 model boundaries (0.02 - 5 mm).')
+        if kwargs['d_p'] < 0:
+            exc.FunctionInputFail('Particle diameter cann not be negative')
     if 'GF' in kwargs:
         if kwargs['GF'] not in [1, 2, 3, 4]:
             logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
     if 'alpha' in kwargs:
-        if (kwargs['alpha'] < 0) or (kwargs['alpha'] > 90):
-            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries.')
+        if (kwargs['alpha'] < 10) or (kwargs['alpha'] > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
 
     # bend
     if 'R' in kwargs:
