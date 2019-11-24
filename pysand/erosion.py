@@ -10,16 +10,19 @@ def validate_inputs(**kwargs):
     """
     Validation of all input parameters that go into erosion models;
     Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
-    -------------------------------------------------------------------
-    Model parameter         ---   Lower boundary   ---   Upper boundary
-    -------------------------------------------------------------------
-    Particle diameter       ---        0.02        ---        5     ---
-    Pipe inner diameter(D)  ---        0.01        ---        1     ---
-    Particle impact angle   ---        0           ---        90    ---
-    Bend radius             ---        0.5         ---        50    ---
-    Manifold diameter       ---        D           ---              ---
-    Heoght of the weld      ---        0           ---        D     ---
-    -------------------------------------------------------------------
+    -------------------------------------------------------------------------
+    Model parameter               ---   Lower boundary   ---   Upper boundary
+    -------------------------------------------------------------------------
+    Particle diameter             ---        0.02        ---        5     ---
+    Pipe inner diameter(D)        ---        0.01        ---        1     ---
+    Particle impact angle         ---        0           ---        90    ---
+    Bend radius                   ---        0.5         ---        50    ---
+    Manifold diameter             ---        D           ---              ---
+    Height of the weld            ---        0           ---        D     ---
+    Radius of choke gallery (Rc)  ---        0           ---              ---
+    Gap cage and choke body (gap) ---        0           ---        Rc    ---
+    Height of gallery (H)         ---        0           ---              ---
+    -------------------------------------------------------------------------
     Geometry factor can only be 1, 2, 3 or 4
     """
 
@@ -28,7 +31,7 @@ def validate_inputs(**kwargs):
             if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'Rc', 'gap', 'H']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -48,7 +51,7 @@ def validate_inputs(**kwargs):
         if (kwargs['alpha'] < 0) or (kwargs['alpha'] > 90):
             logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries.')
 
-    # bend
+    # bend/choke gallery
     if 'R' in kwargs:
         if (kwargs['R'] < 0.5) or (kwargs['R'] > 50):
             logger.warning('Bend radius, R, is outside RP-O501 model boundaries.')
@@ -62,6 +65,14 @@ def validate_inputs(**kwargs):
     if 'h' in kwargs:
         if (kwargs['h'] < 0) or (kwargs['h'] > kwargs['D']):
             logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
+
+    # choke gallery
+    for l in ['Rc, gap, h']:
+        if l in kwargs:
+            if not kwargs[j] > 0:
+                raise exc.FunctionInputFail('{} has to be larger than 0'.format(j))
+            if kwargs['gap'] > kwargs['Rc']:
+                raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(j))
 
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
@@ -296,4 +307,56 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
         C2 = 1
     C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.60)
     E = K * F(a_rad) * v_m ** n / (rho_t * At) * C2 * Q_s / 1000 * C_unit
+    return E
+
+
+def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p):
+    """
+    Particle erosion for flexible pipes with interlock carcass, model reference to DNVGL RP-O501, August 2015
+    :param v_m: Mix velocity [m/s]
+    :param rho_m: Mix density [kg/m3]
+    :param mu_m: Mix viscosity [kg/ms]
+    :param Q_s: Sand production rate [g/s]
+    :param mbr: Minimum Bending Radius in operation [# ID's]
+    :param D: Minimum internal diameter for the interlock carcass [m]
+    :param d_p: Particle diameter [mm]
+    :return: Erosion rate [mm/y]
+    """
+
+    GF = 2
+    E = bend(v_m, rho_m, mu_m, Q_s, mbr, GF, D, d_p)
+    return E
+
+
+def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2.5, rho_t=14600):
+    """
+    Particle erosion for angle style choke gallery, model reference to DNVGL RP-O501, August 2015
+    :param v_m: Upstream mix velocity [m/s]
+    :param rho_m: Mix density [kg/m3]
+    :param mu_m: Mix viscosity [kg/ms]
+    :param Q_s: Sand production rate [g/s]
+    :param GF: Geometry factor [-]
+    :param D: Upstream pipe diameter [m]
+    :param d_p: Particle diameter [mm]
+    :param R_c: Radius of the choke gallery [m]
+    :param gap: Gap between the cage and choke body [m]
+    :param H: Height (effective) of gallery [m]
+    :param K: Material erosion constant, default = 8.8e-11 (CR-37 Tungsten carbide)
+    :param n: Velocity exponent, default = 2.5 (CR-37 Tungsten carbide)
+    :param rho_t: Target material density [kg/m3], default = 14600 (CR-37 Tungsten carbide)
+    :return: Erosion rate [mm/y]
+    """
+
+    # OBS, brittle!
+    kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
+    validate_inputs(**kwargs)
+
+    Ag = 2 * H * gap  # Effective gallery area (table 4-5)
+    C1_bend = 2.5  # Model geometry factor for pipe bends
+    C1_choke = 1.25  # Model geometry factor for choke gallery (table 4-5)
+    Q = v_m * np.pi / 4 * D**2  # Actual flow [m3/s]
+    v_c = 3/4 * Q / Ag  # Velocity [m/s] (table 4-5)
+    R = R_c/gap  # Checked with DNVGL on e-mail 23.08.17
+    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, K, n, rho_t) / C1_bend * C1_choke
+
     return E
