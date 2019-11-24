@@ -13,6 +13,10 @@ def validate_inputs(**kwargs):
     -------------------------------------------------------------------
     Model parameter         ---   Lower boundary   ---   Upper boundary
     -------------------------------------------------------------------
+    Mix velocity            ---        0           ---        200   ---
+    Mix density             ---        1           ---        1500  ---
+    Mix viscosity           ---        1e-6        ---        1e-2  ---
+    Sand production rate    ---        0           ---        500   ---
     Particle diameter       ---        0.02        ---        5     ---
     Pipe inner diameter(D)  ---        0.01        ---        1     ---
     Particle impact angle   ---        0           ---        90    ---
@@ -27,6 +31,20 @@ def validate_inputs(**kwargs):
         if i in kwargs:
             if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+
+    if 'v_m' in kwargs:
+        if (kwargs['v_m'] < 0) or (kwargs['v_m'] > 200):
+            logger.warning('Mix velocity, v_m, is outside RP-O501 model boundaries (0-200 m/s).')
+    if 'rho_m' in kwargs:
+        if (kwargs['rho_m'] < 1) or (kwargs['rho_m'] > 1500):
+            logger.warning('Mix density, rho_m, is outside RP-O501 model boundaries (1-1500 kg/m3).')
+    if 'mu_m' in kwargs:
+        if (kwargs['mu_m'] < 1e-6) or (kwargs['mu_m'] > 1e-2):
+            logger.warning(
+                'Mix viscosity, mu_m, is outside RP-O501 model boundaries (1e-6 - 1e-2 kg/ms).')
+    if 'Q_s' in kwargs:
+        if (kwargs['Q_s'] < 0) or (kwargs['Q_s'] > 500):
+            logger.warning('Sand production rate, Q_s, is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
     for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
         if j in kwargs:
@@ -87,7 +105,7 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
     validate_inputs(**kwargs)
 
     # Constants:
