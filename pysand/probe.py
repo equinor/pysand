@@ -44,7 +44,7 @@ def er_sand_rate(E_meas, v_m, rho_m, D, d_p, alpha=60):
     """
 
     # Input validation
-    kwargs = {'E_meas': E_meas, 'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'alpha': alpha}
+    kwargs = {'E_meas': E_meas, 'v_m': v_m}
     validate_inputs(**kwargs)
 
     E_theor = probes(v_m, rho_m, 1, D, d_p, alpha)
