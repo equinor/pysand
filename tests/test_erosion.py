@@ -154,5 +154,5 @@ def test_flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p, E):
 # Choke gallery #
 gallery_validation = [(30, 450, 5e-4, .7, 1, .15, .5, .15, .04, .15, 2e-9, 2.6, 7850, pytest.approx(15.48484))]
 @pytest.mark.parametrize('v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E', gallery_validation)
-def test_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E):
+def test_choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E):
     assert choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=K, n=n, rho_t=rho_t) == E
