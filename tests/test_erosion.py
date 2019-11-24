@@ -31,7 +31,7 @@ def test_validate_inputs(caplog):
                 validate_inputs(**kwargs)
                 info = [record for record in caplog.records if record.levelname == 'WARNING']
                 assert any(
-                    "Pipe inner diameter, {}, is outside RP-O501 model boundaries.".format(inp)
+                    "Pipe inner diameter, {}, is outside RP-O501 model boundaries. (0.01 - 1 m)".format(inp)
                     in s.message for s in info)
 
     # Test particle diameter boundaries
@@ -42,7 +42,7 @@ def test_validate_inputs(caplog):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Particle diameter, d_p, is outside RP-O501 model boundaries." in s.message for s in info)
+                "Particle diameter, d_p, is outside RP-O501 model boundaries (0.02 - 5 mm)." in s.message for s in info)
 
     # Test geometry factor limitations
     kwargs = {'GF': 6}
@@ -58,7 +58,8 @@ def test_validate_inputs(caplog):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries." in s.message for s in info)
+                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg)."
+                in s.message for s in info)
 
     # Test bend radius boundaries
     kwargs = {'R': 1}
