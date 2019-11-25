@@ -37,6 +37,8 @@ def validate_inputs(**kwargs):
         if i in kwargs:
             if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+            if not kwargs[i] >= 0:
+                return True
 
     if 'v_m' in kwargs:
         if (kwargs['v_m'] < 0) or (kwargs['v_m'] > 200):
@@ -50,7 +52,7 @@ def validate_inputs(**kwargs):
                 'Mix viscosity, mu_m, is outside RP-O501 model boundaries (1e-6 - 1e-2 kg/ms).')
 
     if ('Q_s' in kwargs) and ('rho_p' in kwargs) and ('v_m' in kwargs) and ('D' in kwargs):
-        ppmV = kwargs['Q_s'] / ( kwargs['rho_p'] * kwargs['v_m'] * np.pi/4*kwargs['D']**2) * 1e3  # (4.20 in RP-O501)
+        ppmV = kwargs['Q_s'] / (kwargs['rho_p'] * kwargs['v_m'] * np.pi/4*kwargs['D']**2) * 1e3  # (4.20 in RP-O501)
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
@@ -122,7 +124,8 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     # Constants:
     C1 = 2.5  # Model geometry factor for pipe bends
@@ -165,7 +168,8 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
@@ -204,7 +208,8 @@ def straight_pipe(v_m, Q_s, D):
 
     # Input validation
     kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     E = 2.5e-5 * v_m**2.6 * D**(-2) * Q_s / 1000
     return E
@@ -229,7 +234,8 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
@@ -269,7 +275,8 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     R = Dm / D - 0.5  # Synthetic bend radius
     return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p)
@@ -294,7 +301,8 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     a_rad = np.deg2rad(alpha)
     At = np.pi/(4 * np.sin(a_rad))*(D1**2-D2**2)  # Characteristic particle impact area [m2] (4.50)
@@ -325,7 +333,8 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
 
     # Input validation
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'alpha': alpha}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     a_rad = np.deg2rad(alpha)
     At = np.pi / 4 * D**2 * 1 / np.sin(a_rad)  # Eqv particle impact area for homogeneously distributed particles (4.58)
@@ -376,7 +385,8 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2
 
     # OBS, brittle!
     kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
-    validate_inputs(**kwargs)
+    if validate_inputs(**kwargs):
+        return np.nan
 
     Ag = 2 * H * gap  # Effective gallery area (table 4-5)
     C1_bend = 2.5  # Model geometry factor for pipe bends
