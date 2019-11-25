@@ -50,14 +50,14 @@ def test_validate_inputs(caplog):
                  in s.message for s in info)
 
     # Test Q_s boundaries
-    kwargs = {'Q_s': 1}
+    kwargs = {'Q_s': 1, 'v_m': 1, 'D': .1}
     for illegal_input in [-1, 555]:
         kwargs['Q_s'] = illegal_input
         with caplog.at_level(logging.WARNING):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Sand production rate, Q_s, is outside RP-O501 model boundaries ( 0-500 ppmV)."
+                "The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV)."
                 in s.message for s in info)
 
     kwargs = {'R': 29.3, 'GF': 30, 'D': 1.5e-5, 'd_p': 1, 'h': 30, 'Dm': 30, 'D1': 30, 'D2': 30}

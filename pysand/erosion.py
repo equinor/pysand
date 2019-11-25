@@ -16,7 +16,7 @@ def validate_inputs(**kwargs):
     Mix velocity                  ---        0           ---        200   ---
     Mix density                   ---        1           ---        1500  ---
     Mix viscosity                 ---        1e-6        ---        1e-2  ---
-    Sand production rate          ---        0           ---        500   ---
+    Particle concentration [ppmV] ---        0           ---        500   ---
     Particle diameter             ---        0.02        ---        5     ---
     Pipe inner diameter(D)        ---        0.01        ---        1     ---
     Particle impact angle         ---        0           ---        90    ---
@@ -29,6 +29,9 @@ def validate_inputs(**kwargs):
     -------------------------------------------------------------------------
     Geometry factor can only be 1, 2, 3 or 4
     """
+
+    if not 'rho_p' in kwargs:
+        kwargs['rho_p'] = 2650
 
     for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         if i in kwargs:
@@ -45,9 +48,11 @@ def validate_inputs(**kwargs):
         if (kwargs['mu_m'] < 1e-6) or (kwargs['mu_m'] > 1e-2):
             logger.warning(
                 'Mix viscosity, mu_m, is outside RP-O501 model boundaries (1e-6 - 1e-2 kg/ms).')
-    if 'Q_s' in kwargs:
-        if (kwargs['Q_s'] < 0) or (kwargs['Q_s'] > 500):
-            logger.warning('Sand production rate, Q_s, is outside RP-O501 model boundaries ( 0-500 ppmV).')
+
+    if ('Q_s' in kwargs) and ('rho_p' in kwargs) and ('v_m' in kwargs) and ('D' in kwargs):
+        ppmV = kwargs['Q_s'] / ( kwargs['rho_p'] * kwargs['v_m'] * np.pi/4*kwargs['D']**2) * 1e3  # (4.20 in RP-O501)
+        if (ppmV < 0) or (ppmV > 500):
+            logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
     for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'Rc', 'gap', 'H']:
         if j in kwargs:
@@ -65,7 +70,7 @@ def validate_inputs(**kwargs):
         if (kwargs['d_p'] < 0.02) or (kwargs['d_p'] > 5):
             logger.warning('Particle diameter, d_p, is outside RP-O501 model boundaries (0.02 - 5 mm).')
         if kwargs['d_p'] < 0:
-            exc.FunctionInputFail('Particle diameter cann not be negative')
+            exc.FunctionInputFail('Particle diameter cannot be negative')
     if 'GF' in kwargs:
         if kwargs['GF'] not in [1, 2, 3, 4]:
             logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
