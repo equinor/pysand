@@ -16,6 +16,50 @@ def test_validate_inputs(caplog):
             with pytest.raises(exc.FunctionInputFail) as excinfo:
                 validate_inputs(**kwargs)
 
+    # Test v_m boundaries
+    kwargs = {'v_m': 1}
+    for illegal_input in [-1, 201]:
+        kwargs['v_m'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Mix velocity, v_m, is outside RP-O501 model boundaries (0-200 m/s)."
+                in s.message for s in info)
+
+    # Test rho_m boundaries
+    kwargs = {'rho_m': 1}
+    for illegal_input in [-1, 1555]:
+        kwargs['rho_m'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Mix density, rho_m, is outside RP-O501 model boundaries (1-1500 kg/m3)."
+                in s.message for s in info)
+
+    # Test mu_m boundaries
+    kwargs = {'mu_m': 1e-3}
+    for illegal_input in [-1, 1]:
+         kwargs['mu_m'] = illegal_input
+         with caplog.at_level(logging.WARNING):
+             validate_inputs(**kwargs)
+             info = [record for record in caplog.records if record.levelname == 'WARNING']
+             assert any(
+                 "Mix viscosity, mu_m, is outside RP-O501 model boundaries (1e-6 - 1e-2 kg/ms)."
+                 in s.message for s in info)
+
+    # Test Q_s boundaries
+    kwargs = {'Q_s': 1, 'v_m': 1, 'D': .1}
+    for illegal_input in [-1, 555]:
+        kwargs['Q_s'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV)."
+                in s.message for s in info)
+
     kwargs = {'R': 29.3, 'GF': 30, 'D': 1.5e-5, 'd_p': 1, 'h': 30, 'Dm': 30, 'D1': 30, 'D2': 30}
     for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
         for non_number in [None, 'string', np.nan, pd.Series().any()]:
@@ -32,7 +76,7 @@ def test_validate_inputs(caplog):
                 validate_inputs(**kwargs)
                 info = [record for record in caplog.records if record.levelname == 'WARNING']
                 assert any(
-                    "Pipe inner diameter, {}, is outside RP-O501 model boundaries.".format(inp)
+                    "Pipe inner diameter, {}, is outside RP-O501 model boundaries (0.01 - 1 m).".format(inp)
                     in s.message for s in info)
 
     # Test particle diameter boundaries
@@ -43,7 +87,7 @@ def test_validate_inputs(caplog):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Particle diameter, d_p, is outside RP-O501 model boundaries." in s.message for s in info)
+                "Particle diameter, d_p, is outside RP-O501 model boundaries (0.02 - 5 mm)." in s.message for s in info)
 
     # Test geometry factor limitations
     kwargs = {'GF': 6}
@@ -59,7 +103,8 @@ def test_validate_inputs(caplog):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries." in s.message for s in info)
+                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg)."
+                in s.message for s in info)
 
     # Test bend radius boundaries
     kwargs = {'R': 1}
