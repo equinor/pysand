@@ -1,3 +1,6 @@
+# 1.31
+* Fixes missing input validation for erosion models 
+
 # 1.3
 * Added erosion probe sand quantification (incl test and validation)
 * Added erosion model for flexible pipes with interlock carcass
