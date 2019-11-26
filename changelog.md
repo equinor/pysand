@@ -1,3 +1,6 @@
+# 1.32
+* Erosion models now return NaN when v_m, rho_m, mu_m or Q_s < 0.
+
 # 1.31
 * Fixes missing input validation for erosion models 
 

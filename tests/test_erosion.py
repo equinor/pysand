@@ -17,19 +17,14 @@ def test_validate_inputs(caplog):
                 validate_inputs(**kwargs)
 
     # Test v_m boundaries
-    kwargs = {'v_m': 1}
-    for illegal_input in [-1, 201]:
-        kwargs['v_m'] = illegal_input
-        with caplog.at_level(logging.WARNING):
-            validate_inputs(**kwargs)
-            info = [record for record in caplog.records if record.levelname == 'WARNING']
-            assert any(
-                "Mix velocity, v_m, is outside RP-O501 model boundaries (0-200 m/s)."
-                in s.message for s in info)
+    kwargs = {'v_m': 201}
+    with caplog.at_level(logging.WARNING):
+        validate_inputs(**kwargs)
+    assert "Mix velocity, v_m, is outside RP-O501 model boundaries (0-200 m/s)." in str(caplog.records)
 
     # Test rho_m boundaries
     kwargs = {'rho_m': 1}
-    for illegal_input in [-1, 1555]:
+    for illegal_input in [0.1, 1555]:
         kwargs['rho_m'] = illegal_input
         with caplog.at_level(logging.WARNING):
             validate_inputs(**kwargs)
@@ -40,7 +35,7 @@ def test_validate_inputs(caplog):
 
     # Test mu_m boundaries
     kwargs = {'mu_m': 1e-3}
-    for illegal_input in [-1, 1]:
+    for illegal_input in [1e-7, 1]:
          kwargs['mu_m'] = illegal_input
          with caplog.at_level(logging.WARNING):
              validate_inputs(**kwargs)
@@ -51,7 +46,7 @@ def test_validate_inputs(caplog):
 
     # Test Q_s boundaries
     kwargs = {'Q_s': 1, 'v_m': 1, 'D': .1}
-    for illegal_input in [-1, 555]:
+    for illegal_input in [100, 555]:
         kwargs['Q_s'] = illegal_input
         with caplog.at_level(logging.WARNING):
             validate_inputs(**kwargs)
@@ -201,3 +196,78 @@ gallery_validation = [(30, 450, 5e-4, .7, 1, .15, .5, .15, .04, .15, 2e-9, 2.6, 
 @pytest.mark.parametrize('v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E', gallery_validation)
 def test_choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K, n, rho_t, E):
     assert choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=K, n=n, rho_t=rho_t) == E
+
+
+def test_return_nan():
+    v_m = 29.3
+    rho_m = 30
+    mu_m = 1.5e-5
+    Q_s = 2400 * 1000 / 86400 / 365
+    R = 1
+    GF = 2
+    D = .1
+    d_p = .4
+    h = 0.023
+    Dm = .2
+    D1 = .15
+    D2 = .1
+    mbr = 15
+    R_c = .15
+    gap = .04
+    H = .15
+    # test bend
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(bend(**kwargs))
+    
+    # test tee
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(tee(**kwargs))
+
+    # straight pipe
+    kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
+    for inp in ['v_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(straight_pipe(**kwargs))
+
+    # test welded joint
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
+    for inp in ['v_m', 'rho_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(welded_joint(**kwargs))
+
+    # test manifold
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(manifold(**kwargs))
+
+    # test reducer
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(reducer(**kwargs))
+
+    # test probes
+    # v_m, rho_m, Q_s, D, d_p
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(probes(**kwargs))
+
+    # test flexible
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'mbr': mbr, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(flexible(**kwargs))
+
+    # test choke gallery
+    # v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D,
+              'd_p': d_p, 'R_c': R_c, 'gap': gap, 'H': H}
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+        kwargs[inp] = -1
+        assert np.isnan(choke_gallery(**kwargs))
