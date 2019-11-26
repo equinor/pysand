@@ -45,7 +45,7 @@ def test_validate_inputs(caplog):
                  in s.message for s in info)
 
     # Test Q_s boundaries
-    kwargs = {'Q_s': 1, 'rho_p': 1, 'v_m': 1, 'D': .1}
+    kwargs = {'Q_s': 1, 'v_m': 1, 'D': .1}
     for illegal_input in [100, 555]:
         kwargs['Q_s'] = illegal_input
         with caplog.at_level(logging.WARNING):

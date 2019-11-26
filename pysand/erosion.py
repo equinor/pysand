@@ -38,6 +38,7 @@ def validate_inputs(**kwargs):
             if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
             if not kwargs[i] >= 0:
+                logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
                 return True
 
     if 'v_m' in kwargs:
