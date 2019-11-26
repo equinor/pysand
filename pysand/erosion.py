@@ -41,7 +41,7 @@ def validate_inputs(**kwargs):
                 return True
 
     if 'v_m' in kwargs:
-        if (kwargs['v_m'] < 0) or (kwargs['v_m'] > 200):
+        if kwargs['v_m'] > 200:
             logger.warning('Mix velocity, v_m, is outside RP-O501 model boundaries (0-200 m/s).')
     if 'rho_m' in kwargs:
         if (kwargs['rho_m'] < 1) or (kwargs['rho_m'] > 1500):
