@@ -11,6 +11,8 @@ def validate_asd(**kwargs):
     """
     for i in ['v_m', 'GLR', 'GOR']:
         if i in kwargs:
+            if kwargs[i] is None:
+                raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(i))
             if not isinstance(kwargs[i], (float, int)):
                 raise exc.FunctionInputFail('{} is not a number'.format(i))
             if not kwargs[i] >= 0:
@@ -26,7 +28,8 @@ def std_step_clampon(v_m, GLR):
     '''
 
     kwargs = {'v_m': v_m, 'GLR': GLR}
-    validate_asd(**kwargs)
+    if validate_asd(**kwargs):
+        return np.nan
 
     # Standard Step values from Equinor wiki, Jan 18:
     step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
@@ -57,7 +60,8 @@ def std_step_emerson(v_m, GOR):
     '''
 
     kwargs = {'v_m': v_m, 'GOR': GOR}
-    validate_asd(**kwargs)
+    if validate_asd(**kwargs):
+        return np.nan
 
     # Standard Step values from Equinor wiki, Jan 18:
     if GOR > 150:
@@ -82,6 +86,10 @@ def sand_rate(raw, zero, step):
     :param step: Sand noise
     :return: Sand rate [g/s]
     '''
+
+    for key, value in {'raw': raw, 'zero': zero, 'step': step}.items():
+        if value is None:
+            raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(key))
 
     if raw > zero:
         try:
