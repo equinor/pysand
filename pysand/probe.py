@@ -20,8 +20,8 @@ def validate_inputs(**kwargs):
 
     for i in kwargs:
         if i in ['E_meas', 'v_m']:
-            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
-                raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+            if not isinstance(kwargs[i], (float, int)):
+                raise exc.FunctionInputFail('{} is not a number'.format(i))
             if kwargs[i] < 0:
                 raise exc.FunctionInputFail('{} cannot be negative.'.format(i))
             if i == 'v_m':
