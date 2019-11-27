@@ -1,5 +1,21 @@
 from scipy import interpolate
+import numpy as np
+import pysand.exceptions as exc
+import logging
 
+logger = logging.getLogger(__name__)
+
+def validate_asd(**kwargs):
+    """
+    Validation of all input parameters that go into std_step_clampon, std_step_emerson and sand_rate functions;
+    """
+    for i in ['v_m', 'GLR', 'GOR']:
+        if i in kwargs:
+            if not isinstance(kwargs[i], (float, int)):
+                raise exc.FunctionInputFail('{} is not a number'.format(i))
+            if not kwargs[i] >= 0:
+                logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
+                return True
 
 def std_step_clampon(v_m, GLR):
     '''
@@ -8,6 +24,10 @@ def std_step_clampon(v_m, GLR):
     :param GLR: Gas liquid ratio [Sm3/Sm3]
     :return: Standard step value
     '''
+
+    kwargs = {'v_m': v_m, 'GLR': GLR}
+    validate_asd(**kwargs)
+
     # Standard Step values from Equinor wiki, Jan 18:
     step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
     step_oil = [0, 425, 1500, 2500, 3100, 4500, 5500, 8100, 11300, 16100, 22500]
@@ -22,7 +42,7 @@ def std_step_clampon(v_m, GLR):
         step = f_gas(v_m)
 
     if step < 0:
-        print('Negative step')
+        logger.warning('Negative step')
         step = None
 
     return step
@@ -36,6 +56,9 @@ def std_step_emerson(v_m, GOR):
     :return: Standard step value
     '''
 
+    kwargs = {'v_m': v_m, 'GOR': GOR}
+    validate_asd(**kwargs)
+
     # Standard Step values from Equinor wiki, Jan 18:
     if GOR > 150:
         E, F, G, H = 3.2, 149.5, 4486.9, 360.8
@@ -45,7 +68,7 @@ def std_step_emerson(v_m, GOR):
     step = E * v_m ** 3 + F * v_m ** 2 + G * v_m + H
 
     if step < 0:
-        print('Negative step')
+        logger.warning('Negative step')
         step = None
 
     return step
@@ -64,11 +87,11 @@ def sand_rate(raw, zero, step):
         try:
             Qs = (raw - zero) / step
         except ZeroDivisionError:
-            print('Step value equal to zero, calculation not possible')
+            logger.warning('Step value equal to zero, calculation not possible')
             Qs = None
         else:
             if Qs < 0:
-                print('Negative step')
+                logger.warning('Negative step')
                 Qs = None
     else:
         Qs = 0
