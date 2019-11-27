@@ -1,7 +1,23 @@
 import numpy as np
+import logging
+import pysand.exceptions as exc
 
+logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
 
+def validate_fluid_props(**kwargs):
+    """
+        Validation of all input parameters that go into erosion models;
+    """
+    for i in ['P', 'T', 'Qo', 'Qw', 'Qg', 'Z', 'D', 'rho_o', 'rho_w', 'MW', 'mu_o', 'mu_w', 'mu_g']:
+        if i in kwargs:
+            if kwargs[i] is None:
+                raise exc.FunctionInputFail('No fluid properties are calculated due to missing {}'.format(i))
+            if not isinstance(kwargs[i], (float, int)):
+                raise exc.FunctionInputFail('{} is not a number'.format(i))
+            if not kwargs[i] >= 0:
+                logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
+                return True
 
 def mix_velocity(P, T, Qo, Qw, Qg, Z, D):
     '''
@@ -15,6 +31,11 @@ def mix_velocity(P, T, Qo, Qw, Qg, Z, D):
     :param D: Cross sectional diameter [m]
     :return: Mix velocity [m/s]
     '''
+
+    kwargs = {'P': P, 'T': T, 'Qo': Qo, 'Qw': Qw, 'Qg': Qg, 'Z': Z, 'D': D}
+    if validate_fluid_props(**kwargs):
+        return np.nan
+
     T = T + 273.15
     # Constants
     P0 = 1.01325  # Pressure at std conditions [bar]
@@ -39,6 +60,11 @@ def mix_density(P, T, Qo, Qw, Qg, rho_o, rho_w, MW, Z):
     :param Z: Gas compressibility factor [-]
     :return: Mix density [kg/m3]
     '''
+
+    kwargs = {'P': P, 'T': T, 'Qo': Qo, 'Qw': Qw, 'Qg': Qg, 'rho_o': rho_o, 'rho_w': rho_w, 'MW': MW, 'Z': Z}
+    if validate_fluid_props(**kwargs):
+        return np.nan
+
     T = T + 273.15
     # Constants
     P0 = 1.01325  # Pressure at std conditions [bar]
@@ -65,6 +91,11 @@ def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
     :param Z: Gas compressibility factor [-]
     :return: Mixture viscosity
     '''
+
+    kwargs = {'P': P, 'T': T, 'Qo': Qo, 'Qw': Qw, 'Qg': Qg, 'mu_o': mu_o, 'mu_w': mu_w, 'mu_g': mu_g, 'Z': Z}
+    if validate_fluid_props(**kwargs):
+        return np.nan
+
     T = T + 273.15
     # Constants
     P0 = 1.01325  # Pressure at std conditions [bar]
