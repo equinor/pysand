@@ -1,5 +1,6 @@
 # 1.3.3
 * Input validation of ASD calculations
+* Input validation of fluid properties
 
 # 1.3.2
 * Erosion models now return NaN when v_m, rho_m, mu_m or Q_s < 0.
