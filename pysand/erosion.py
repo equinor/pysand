@@ -105,7 +105,7 @@ def validate_inputs(**kwargs):
                 raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(j))
 
 
-def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
+def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
     '''
     Particle erosion in bends, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -116,9 +116,7 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
-    :param K: Material erosion constant, default = 2e-9 (duplex steel)
-    :param n: Velocity exponent, default = 2.6 (duplex steel)
-    :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :return: E = Erosion rate [mm/y]
     '''
@@ -130,6 +128,8 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
 
     # Constants:
     C1 = 2.5  # Model geometry factor for pipe bends
+
+    rho_t, K, n, ad = material_properties(material)
 
     # Calculations
     a_rad = np.arctan(1 / (2 * R) ** (0.5))  # Pipe bend impact angle [radians] (4.28)
@@ -146,11 +146,11 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=
     else:
         G = 1
     # Calculate Erosion rate and return data
-    E = K * F(a_rad) * v_m ** n / (rho_t * At) * G * C1 * GF * Q_s * 3600 * 24 * 365.25  # Erosion rate [mm/y] (4.34)
+    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * Q_s * 3600 * 24 * 365.25  # Erosion rate [mm/y] (4.34)
     return E
 
 
-def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650):
+def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, material='duplex', rho_p=2650):
     '''
     Particle erosion in blinded tees, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -160,9 +160,7 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
-    :param K: Material erosion constant, default = 2e-9 (duplex steel)
-    :param n: Velocity exponent, default = 2.6 (duplex steel)
-    :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :return: E: Erosion rate [mm/y]
     '''
@@ -171,6 +169,8 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, K=2e-9, n=2.6, rho_t=7850, rho_p=2650
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
     if validate_inputs(**kwargs):
         return np.nan
+
+    rho_t, K, n, ad = material_properties(material)
 
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
@@ -216,7 +216,7 @@ def straight_pipe(v_m, Q_s, D):
     return E
 
 
-def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850):
+def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, material='duplex'):
     '''
     Particle erosion in welded joints, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -226,9 +226,7 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     :param d_p: Particle diameter [mm]
     :param h: height of the weld [m]
     :param alpha: particle impact angle [degrees], default = 60
-    :param K: Material erosion constant, default = 2e-9 (duplex steel)
-    :param n: Velocity exponent, default = 2.6 (duplex steel)
-    :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :return: E_up: Erosion rate flow facing part of weld [mm/year]
     :return: E_down: Erosion rate downstream of weld [mm/year]
     '''
@@ -238,6 +236,8 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     if validate_inputs(**kwargs):
         return np.nan
 
+    rho_t, K, n, ad = material_properties(material)
+
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
     At = A_pipe / np.sin(a_rad)  # Area exposed to erosion (4.23)
@@ -245,22 +245,12 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, K=2e-9, n=2.6, rho_t=7850
     C2 = 10**6 * d_p / 1000 / (30 * rho_m**.5)  # Particle size and fluid density correction factor (4.25)
     if C2 >= 1:
         C2 = 1
-    E_up = K * F(a_rad) * v_m**n * np.sin(a_rad) / (rho_t * A_pipe) * C2 * C_unit * Q_s / 1000
+    E_up = K * F(a_rad, ad) * v_m**n * np.sin(a_rad) / (rho_t * A_pipe) * C2 * C_unit * Q_s / 1000
     E_down = 3.3e-2 * (7.5e-4 + h) * v_m**n * D**(-2) * Q_s / 1000
     return E_up, E_down
 
 
-def F(a_rad):
-    '''
-    Angle dependency function for ductile materials, reference to DNVGL RP-O501, August 2015 (3.3)
-    :param a_rad: impact angle [radians]
-    :return: angle dependency
-    '''
-    A, B, C, k = .6, 7.2, 20, .6
-    return A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
-
-
-def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
+def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm, material='duplex'):
     '''
     Manifold model, pending inclusion in DNVGL RP-O501. Velocity and fluid properties in branch line.
     :param v_m: Mix velocity [m/s]
@@ -271,6 +261,7 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param Dm: Manifold diameter [m]
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :return: Manifold erosion rate [mm/year]
     '''
 
@@ -280,10 +271,10 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm):
         return np.nan
 
     R = Dm / D - 0.5  # Synthetic bend radius
-    return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p)
+    return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material=material)
 
 
-def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7850):
+def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
     '''
     Particle erosion in reducers, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -294,9 +285,7 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     :param d_p: Particle diameter [mm]
     :param GF: Geometry factor [-], default = 2
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
-    :param K: Material erosion constant, default = 2e-9 (duplex steel)
-    :param n: Velocity exponent, default = 2.6 (duplex steel)
-    :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :return: Reducer erosion rate [mm/year]
     '''
 
@@ -304,6 +293,8 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
     if validate_inputs(**kwargs):
         return np.nan
+
+    rho_t, K, n, ad = material_properties(material)
 
     a_rad = np.deg2rad(alpha)
     At = np.pi/(4 * np.sin(a_rad))*(D1**2-D2**2)  # Characteristic particle impact area [m2] (4.50)
@@ -313,11 +304,11 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, K=2e-9, n=2.6, rho_t=7
     if C2 >= 1:
         C2 = 1
     C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.54)
-    E = K * F(a_rad) * Up**n / (rho_t * At) * Aratio * C2 * GF * Q_s / 1000 * C_unit
+    E = K * F(a_rad, ad) * Up**n / (rho_t * At) * Aratio * C2 * GF * Q_s / 1000 * C_unit
     return E
 
 
-def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
+def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, material='duplex'):
     '''
     Particle erosion for intrusive erosion probes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -326,9 +317,7 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
-    :param K: Material erosion constant, default = 2e-9 (duplex steel)
-    :param n: Velocity exponent, default = 2.6 (duplex steel)
-    :param rho_t: Target material density [kg/m3], default = 7850 (duplex steel)
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :return:
     '''
 
@@ -337,17 +326,19 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, K=2e-9, n=2.6, rho_t=7850):
     if validate_inputs(**kwargs):
         return np.nan
 
+    rho_t, K, n, ad = material_properties(material)
+
     a_rad = np.deg2rad(alpha)
     At = np.pi / 4 * D**2 * 1 / np.sin(a_rad)  # Eqv particle impact area for homogeneously distributed particles (4.58)
     C2 = 10 ** 6 * d_p / 1000 / (30 * rho_m ** .5)  # Particle size and fluid density correction factor (4.59)
     if C2 >= 1:
         C2 = 1
     C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.60)
-    E = K * F(a_rad) * v_m ** n / (rho_t * At) * C2 * Q_s / 1000 * C_unit
+    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * C2 * Q_s / 1000 * C_unit
     return E
 
 
-def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p):
+def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p, material='duplex'):
     """
     Particle erosion for flexible pipes with interlock carcass, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -357,15 +348,16 @@ def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p):
     :param mbr: Minimum Bending Radius in operation [# ID's]
     :param D: Minimum internal diameter for the interlock carcass [m]
     :param d_p: Particle diameter [mm]
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
     :return: Erosion rate [mm/y]
     """
 
     GF = 2
-    E = bend(v_m, rho_m, mu_m, Q_s, mbr, GF, D, d_p)
+    E = bend(v_m, rho_m, mu_m, Q_s, mbr, GF, D, d_p, material=material)
     return E
 
 
-def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2.5, rho_t=14600):
+def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_37_tungsten'):
     """
     Particle erosion for angle style choke gallery, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -378,13 +370,10 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2
     :param R_c: Radius of the choke gallery [m]
     :param gap: Gap between the cage and choke body [m]
     :param H: Height (effective) of gallery [m]
-    :param K: Material erosion constant, default = 8.8e-11 (CR-37 Tungsten carbide)
-    :param n: Velocity exponent, default = 2.5 (CR-37 Tungsten carbide)
-    :param rho_t: Target material density [kg/m3], default = 14600 (CR-37 Tungsten carbide)
+    :param material: Material exposed to erosion, default = 'cr-37_tungsten' (CR-37 Tungsten Carbide). Others: materials('list')
     :return: Erosion rate [mm/y]
     """
 
-    # OBS, brittle!
     kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
     if validate_inputs(**kwargs):
         return np.nan
@@ -395,6 +384,67 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, K=8.8e-11, n=2
     Q = v_m * np.pi / 4 * D**2  # Actual flow [m3/s]
     v_c = 3/4 * Q / Ag  # Velocity [m/s] (table 4-5)
     R = R_c/gap  # Checked with DNVGL on e-mail 23.08.17
-    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, K, n, rho_t) / C1_bend * C1_choke
+    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, material) / C1_bend * C1_choke
 
     return E
+
+
+def material_properties(material):
+    """
+    Function to deal with material properties, reference to table 3-1 in DNVGL RP-O501, August 2015
+    :param material: Material. For a full list of materials run materials("list")
+    :return: rho_t (material density), K (material constant), n (material exponent), angle_dependency
+    """
+
+    properties = {'carbon_steel': (7800, 2e-9, 2.6, 'ductile'),
+                  'duplex': (7850, 2e-9, 2.6, 'ductile'),
+                  'ss316': (8000, 2e-9, 2.6, 'ductile'),
+                  'inconel': (8440, 2e-9, 2.6, 'ductile'),
+                  'grp_epoxy': (1800, 3e-10, 3.6, 'ductile'),
+                  'grp_vinyl_ester': (1800, 6e-10, 3.6, 'ductile'),
+                  'hdpe': (1150, 3.5e-9, 2.9, 'ductile'),
+                  'aluminium': (2700, 5.8e-9, 2.3, 'ductile'),
+                  'dc_05_tungsten': (15250, 1.1e-10, 2.3, 'brittle'),
+                  'cs_10_tungsten': (14800, 3.2e-10, 2.2, 'brittle'),
+                  'cr_37_tungsten': (14600, 8.8e-11, 2.5, 'brittle'),
+                  '95_alu_oxide': (3700, 6.8e-8, 2, 'brittle'),
+                  '99_alu_oxide': (3700, 9.5e-7, 1.2, 'brittle'),
+                  'psz_ceramic_zirconia': (5700, 4.1e-9, 2.5, 'brittle'),
+                  'ZrO2-Y3_ceramic_zirconia': (6070, 4e-11, 2.7, 'brittle'),
+                  'SiC_silicon_carbide': (3100, 6.5e-9, 1.9, 'brittle'),
+                  'Si3N4_silicon_nitride': (3200, 2e-10, 2, 'brittle'),
+                  'TiB2_titanium_diboride': (4250, 9.3e-9, 1.9, 'brittle'),
+                  'B4C_boron_carbide': (2500, 3e-8, .9, 'brittle'),
+                  'SiSiC_ceramic_carbide': (3100, 7.4e-11, 2.7, 'brittle')}
+
+    if material == 'list':
+        for key in properties.keys():
+            print(key)
+        return
+
+    if material not in properties:
+        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials("list")'
+                                    .format(material))
+
+    rho_t = properties[material][0]
+    K = properties[material][1]
+    n = properties[material][2]
+    angle_dependency = properties[material][3]
+
+    return rho_t, K, n, angle_dependency
+
+
+def F(a_rad, angle_dependency):
+    """
+    Angle dependency function, reference to DNVGL RP-O501, August 2015 (3.3)
+    :param a_rad: impact angle [radians]
+    :param angle_dependency: angle dependency (ductile or brittle)
+    :return: ductility factor
+    """
+    if angle_dependency == 'ductile':
+        A, B, C, k = .6, 7.2, 20, .6
+        result = A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
+    elif angle_dependency == 'brittle':
+        result = 2 * a_rad / np.pi
+
+    return result
