@@ -23,9 +23,9 @@ pip uninstall pysand
 
 ### Usage
 Jupyter Notebooks with example usage can be found in the example directory:
-* [Acoustic sand detector](examples/asd.ipynb)
-* [Erosion](examples/erosion.ipynb)
-* [Fluid properties](examples/fluidproperties.ipynb)
+* [Acoustic sand detector](https://raw.githubusercontent.com/equinor/pysand/master/examples/asd.ipynb)
+* [Erosion](https://raw.githubusercontent.com/equinor/pysand/master/examples/erosion.ipynb)
+* [Fluid properties](https://raw.githubusercontent.com/equinor/pysand/master/examples/fluidproperties.ipynb)
 
 Bringing them all together:
-* [All pySand modules](examples/all_modules.ipynb)
+* [All pySand modules](https://raw.githubusercontent.com/equinor/pysand/master/examples/all_modules.ipynb)
