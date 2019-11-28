@@ -10,7 +10,7 @@ def test_validate_inputs(caplog):
 
     # Testing input throws exception throws exception
     kwargs = {'v_m': 29.3, 'rho_m': 30, 'mu_m': 1.5e-5, 'Q_s': 2400*1000/86400/365}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_S']:
+    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         for non_number in [None, 'string', np.nan]:
             kwargs[inp] = non_number
             with pytest.raises(exc.FunctionInputFail) as excinfo:
