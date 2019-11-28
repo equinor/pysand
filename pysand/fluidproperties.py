@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def validate_fluid_props(**kwargs):
     """
-        Validation of all input parameters that go into erosion models;
+        Validation of all input parameters that go into fluid properties models
     """
     for i in ['P', 'T', 'Qo', 'Qw', 'Qg', 'Z', 'D', 'rho_o', 'rho_w', 'MW', 'mu_o', 'mu_w', 'mu_g']:
         if i in kwargs:
