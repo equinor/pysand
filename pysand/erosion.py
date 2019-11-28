@@ -384,7 +384,7 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_3
     Q = v_m * np.pi / 4 * D**2  # Actual flow [m3/s]
     v_c = 3/4 * Q / Ag  # Velocity [m/s] (table 4-5)
     R = R_c/gap  # Checked with DNVGL on e-mail 23.08.17
-    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, material) / C1_bend * C1_choke
+    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, material=material) / C1_bend * C1_choke
 
     return E
 
