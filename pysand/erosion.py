@@ -418,12 +418,10 @@ def material_properties(material):
                   'SiSiC_ceramic_carbide': (3100, 7.4e-11, 2.7, 'brittle')}
 
     if material == 'list':
-        for key in properties.keys():
-            print(key)
-        return
+        return list(properties.keys())
 
     if material not in properties:
-        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials("list")'
+        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials="list"'
                                     .format(material))
 
     rho_t = properties[material][0]
@@ -443,8 +441,9 @@ def F(a_rad, angle_dependency):
     """
     if angle_dependency == 'ductile':
         A, B, C, k = .6, 7.2, 20, .6
-        result = A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
+        return A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
     elif angle_dependency == 'brittle':
-        result = 2 * a_rad / np.pi
+        return 2 * a_rad / np.pi
+    else:
+        raise exc.FunctionInputFail('Angle dependency {} is not defined.'.format(angle_dependency))
 
-    return result
