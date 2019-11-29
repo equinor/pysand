@@ -1,3 +1,6 @@
+## 1.4.1
+* Added test functions for material properties and angle dependency
+
 ## 1.4
 * Added material properties to all erosion models
 

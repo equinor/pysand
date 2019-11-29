@@ -116,7 +116,7 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :return: E = Erosion rate [mm/y]
     '''
@@ -160,7 +160,7 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, material='duplex', rho_p=2650):
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :return: E: Erosion rate [mm/y]
     '''
@@ -226,7 +226,7 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, material='duplex'):
     :param d_p: Particle diameter [mm]
     :param h: height of the weld [m]
     :param alpha: particle impact angle [degrees], default = 60
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return: E_up: Erosion rate flow facing part of weld [mm/year]
     :return: E_down: Erosion rate downstream of weld [mm/year]
     '''
@@ -261,7 +261,7 @@ def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm, material='duplex'):
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param Dm: Manifold diameter [m]
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return: Manifold erosion rate [mm/year]
     '''
 
@@ -285,7 +285,7 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
     :param d_p: Particle diameter [mm]
     :param GF: Geometry factor [-], default = 2
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return: Reducer erosion rate [mm/year]
     '''
 
@@ -317,7 +317,7 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, material='duplex'):
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return:
     '''
 
@@ -348,7 +348,7 @@ def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p, material='duplex'):
     :param mbr: Minimum Bending Radius in operation [# ID's]
     :param D: Minimum internal diameter for the interlock carcass [m]
     :param d_p: Particle diameter [mm]
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return: Erosion rate [mm/y]
     """
 
@@ -370,7 +370,7 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_3
     :param R_c: Radius of the choke gallery [m]
     :param gap: Gap between the cage and choke body [m]
     :param H: Height (effective) of gallery [m]
-    :param material: Material exposed to erosion, default = 'cr-37_tungsten' (CR-37 Tungsten Carbide). Others: materials('list')
+    :param material: Material exposed to erosion, default = 'cr-37_tungsten' (CR-37 Tungsten Carbide). For others, run: materials()
     :return: Erosion rate [mm/y]
     """
 
@@ -392,7 +392,7 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_3
 def material_properties(material):
     """
     Function to deal with material properties, reference to table 3-1 in DNVGL RP-O501, August 2015
-    :param material: Material. For a full list of materials run materials("list")
+    :param material: Material. For a full list of materials run: materials()
     :return: rho_t (material density), K (material constant), n (material exponent), angle_dependency
     """
 
@@ -418,12 +418,10 @@ def material_properties(material):
                   'SiSiC_ceramic_carbide': (3100, 7.4e-11, 2.7, 'brittle')}
 
     if material == 'list':
-        for key in properties.keys():
-            print(key)
-        return
+        return list(properties.keys())
 
     if material not in properties:
-        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials("list")'
+        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials()'
                                     .format(material))
 
     rho_t = properties[material][0]
@@ -443,8 +441,16 @@ def F(a_rad, angle_dependency):
     """
     if angle_dependency == 'ductile':
         A, B, C, k = .6, 7.2, 20, .6
-        result = A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
+        return A * (np.sin(a_rad) + B * (np.sin(a_rad) - np.sin(a_rad) ** 2))**k * (1 - np.exp(-C * a_rad))
     elif angle_dependency == 'brittle':
-        result = 2 * a_rad / np.pi
+        return 2 * a_rad / np.pi
+    else:
+        raise exc.FunctionInputFail('Angle dependency {} is not defined.'.format(angle_dependency))
 
-    return result
+def materials():
+    print('--------------------')
+    print('Available materials:')
+    print('--------------------')
+    return material_properties('list')
+
+
