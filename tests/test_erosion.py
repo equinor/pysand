@@ -228,6 +228,11 @@ F_validation = [(0, 'ductile', 0),
 def test_F(a_rad, angle_dependency, E):
     assert F(a_rad, angle_dependency) == E
 
+    angle_dependency = 'something_else'
+    with pytest.raises(exc.FunctionInputFail) as excinfo:
+        F(a_rad, angle_dependency)
+
+
 # Material properties function #
 material_validation = [('carbon_steel', (7800, 2e-9, 2.6, 'ductile')),
                        ('grp_epoxy', (1800, 3e-10, 3.6, 'ductile')),
@@ -236,6 +241,18 @@ material_validation = [('carbon_steel', (7800, 2e-9, 2.6, 'ductile')),
 def test_material_properties(material, E):
     assert material_properties(material) == E
 
+# Test material list and error raising
+def test_material():
+    material_list = ['carbon_steel', 'duplex', 'ss316', 'inconel', 'grp_epoxy', 'grp_vinyl_ester', 'hdpe', 'aluminium',
+                     'dc_05_tungsten', 'cs_10_tungsten', 'cr_37_tungsten', '95_alu_oxide', '99_alu_oxide',
+                     'psz_ceramic_zirconia', 'ZrO2-Y3_ceramic_zirconia', 'SiC_silicon_carbide', 'Si3N4_silicon_nitride',
+                     'TiB2_titanium_diboride', 'B4C_boron_carbide', 'SiSiC_ceramic_carbide']
+    material = 'list'
+    assert material_properties(material) == material_list
+
+    material = 'something_else'
+    with pytest.raises(exc.FunctionInputFail) as excinfo:
+        material_properties(material)
 
 def test_return_nan():
     v_m = 29.3
