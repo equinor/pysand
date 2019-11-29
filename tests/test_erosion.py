@@ -128,6 +128,25 @@ def test_validate_inputs(caplog):
                 "Height of the weld, h, must positive number not exceeding pipe inner diameter size, D"
                 in s.message for s in info)
 
+    # Test choke gallery input
+    R_c = 0.15
+    gap = 0.04
+    H = 0.15
+
+    kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
+    for i in kwargs.keys():
+        kwargs[i] = -1
+        with pytest.raises(exc.FunctionInputFail) as excinfo:
+            validate_inputs(**kwargs)
+
+        kwargs['R_c'] = R_c
+        kwargs['gap'] = gap
+        kwargs['H'] = H
+
+    kwargs['gap'] = 0.2
+    with pytest.raises(exc.FunctionInputFail):
+        validate_inputs(**kwargs)
+
 # Pipe bends #
 # Bend validation 1 based on the model validations in DNVGL RP-O501, Aug 2015
 # Bend validation 2 to test all versions of gamma

@@ -57,7 +57,7 @@ def validate_inputs(**kwargs):
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'Rc', 'gap', 'H']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -97,12 +97,13 @@ def validate_inputs(**kwargs):
             logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
 
     # choke gallery
-    for l in ['Rc, gap, h']:
+    for l in ['R_c', 'gap', 'H']:
         if l in kwargs:
-            if not kwargs[j] > 0:
-                raise exc.FunctionInputFail('{} has to be larger than 0'.format(j))
-            if kwargs['gap'] > kwargs['Rc']:
-                raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(j))
+            if not kwargs[l] > 0:
+                raise exc.FunctionInputFail('{} has to be larger than 0'.format(l))
+    if 'R_c' in kwargs and 'gap' in kwargs:
+        if kwargs['gap'] > kwargs['R_c']:
+            raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(l))
 
 
 def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
