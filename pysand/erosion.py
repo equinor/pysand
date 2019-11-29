@@ -106,7 +106,7 @@ def validate_inputs(**kwargs):
             raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(l))
 
 
-def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
+def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, erosion='annual', material='duplex', rho_p=2650):
     '''
     Particle erosion in bends, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -147,9 +147,13 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
     else:
         G = 1
     # Calculate Erosion rate and return data
-    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * Q_s * 3600 * 24 * 365.25  # Erosion rate [mm/y] (4.34)
-    return E
-
+    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF
+    if erosion == 'annual':
+        return E * Q_s * 3600 * 24 * 365.25  # Annual surface thickness loss [mm/y] (4.35)
+    elif erosion == 'relative':
+        return E * 10**6  # Relative surface thickness loss [mm/t]
+    else:
+        raise exc.FunctionInputFail('Erosion {} is not defined correctly'.format(erosion))
 
 def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, material='duplex', rho_p=2650):
     '''
