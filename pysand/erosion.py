@@ -148,10 +148,10 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, erosion='annual', material='duple
         G = 1
     # Calculate Erosion rate and return data
     E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF
-    if erosion == 'annual':
+    if erosion == 'relative':
+        return E * 10 ** 6  # Relative surface thickness loss [mm/t] (4.34)
+    elif erosion == 'annual':
         return E * Q_s * 3600 * 24 * 365.25  # Annual surface thickness loss [mm/y] (4.35)
-    elif erosion == 'relative':
-        return E * 10**6  # Relative surface thickness loss [mm/t]
     else:
         raise exc.FunctionInputFail('Erosion {} is not defined correctly'.format(erosion))
 
