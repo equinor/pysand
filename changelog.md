@@ -1,3 +1,6 @@
+# 1.5
+* Breaking change: Erosion results now in mm/ton instead of mm/year
+
 ## 1.4.2
 * Choke gallery erosion model test
 
