@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import logging
 import pysand.exceptions as exc
 
@@ -78,8 +77,8 @@ def validate_inputs(**kwargs):
         if kwargs['GF'] not in [1, 2, 3, 4]:
             logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
     if 'alpha' in kwargs:
-        if (kwargs['alpha'] < 10) or (kwargs['alpha'] > 90):
-            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
+        if (kwargs['alpha'] < 10) or (kwargs['alpha'] > 80):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg).')
 
     # bend/choke gallery
     if 'R' in kwargs:
@@ -224,14 +223,14 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
     :param d_p: Particle diameter [mm]
     :param h: height of the weld [m]
     :param alpha: particle impact angle [degrees], default = 60
-    :param location: Erosion calculation location, default = 'downstream' of weld
+    :param location: Erosion calculation locations 'downstream' or 'upstream' of weld, default = 'downstream'
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :return: E_up: Relative erosion at flow facing part of weld [mm/ton]
     :return: E_down: Relative erosion downstream of weld [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
 

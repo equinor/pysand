@@ -98,7 +98,7 @@ def test_validate_inputs(caplog):
             validate_inputs(**kwargs)
             info = [record for record in caplog.records if record.levelname == 'WARNING']
             assert any(
-                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg)."
+                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg)."
                 in s.message for s in info)
 
     # Test bend radius boundaries
