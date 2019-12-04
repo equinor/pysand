@@ -267,7 +267,7 @@ def test_return_nan():
     v_m = 29.3
     rho_m = 30
     mu_m = 1.5e-5
-    Q_s = 2400 * 1000 / 86400 / 365
+    #Q_s = 2400 * 1000 / 86400 / 365
     R = 1
     GF = 2
     D = .1
@@ -281,58 +281,75 @@ def test_return_nan():
     gap = .04
     H = .15
     # test bend
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m']:
         kwargs[inp] = -1
         assert np.isnan(bend(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
+        kwargs['mu_m'] = mu_m
     
     # test tee
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m']:
         kwargs[inp] = -1
         assert np.isnan(tee(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
+        kwargs['mu_m'] = mu_m
 
     # straight pipe
-    kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
-    for inp in ['v_m', 'Q_s']:
-        kwargs[inp] = -1
-        assert np.isnan(straight_pipe(**kwargs))
+    kwargs = {'v_m': -1, 'D': D}
+    assert np.isnan(straight_pipe(**kwargs))
 
     # test welded joint
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
-    for inp in ['v_m', 'rho_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h}
+    for inp in ['v_m', 'rho_m']:
         kwargs[inp] = -1
         assert np.isnan(welded_joint(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
 
     # test manifold
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
+    for inp in ['v_m', 'rho_m', 'mu_m']:
         kwargs[inp] = -1
         assert np.isnan(manifold(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
+        kwargs['mu_m'] = mu_m
 
     # test reducer
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'd_p': d_p}
-    for inp in ['v_m', 'rho_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m']:
         kwargs[inp] = -1
         assert np.isnan(reducer(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
 
     # test probes
-    # v_m, rho_m, Q_s, D, d_p
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p}
-    for inp in ['v_m', 'rho_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m']:
         kwargs[inp] = -1
         assert np.isnan(probes(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
 
     # test flexible
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'mbr': mbr, 'D': D, 'd_p': d_p}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'mbr': mbr, 'D': D, 'd_p': d_p}
+    for inp in ['v_m', 'rho_m', 'mu_m']:
         kwargs[inp] = -1
         assert np.isnan(flexible(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
+        kwargs['mu_m'] = mu_m
 
     # test choke gallery
-    # v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D,
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D,
               'd_p': d_p, 'R_c': R_c, 'gap': gap, 'H': H}
-    for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
+    for inp in ['v_m', 'rho_m', 'mu_m']:
         kwargs[inp] = -1
         assert np.isnan(choke_gallery(**kwargs))
+        kwargs['v_m'] = v_m
+        kwargs['rho_m'] = rho_m
+        kwargs['mu_m'] = mu_m
