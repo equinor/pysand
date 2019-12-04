@@ -1,4 +1,4 @@
-from pysand.erosion import probes
+from pysand.erosion import probes, erosion_rate
 import logging
 import pysand.exceptions as exc
 import numpy as np
@@ -47,7 +47,9 @@ def er_sand_rate(E_meas, v_m, rho_m, D, d_p, alpha=60):
     kwargs = {'E_meas': E_meas, 'v_m': v_m}
     validate_inputs(**kwargs)
 
-    E_theor = probes(v_m, rho_m, 1, D, d_p, alpha)
+    E_rel_theor = probes(v_m, rho_m, D, d_p, alpha=alpha)  # [mm/ton]
+    Q_s = 1
+    E_theor = erosion_rate(E_rel_theor, Q_s)  # [mm/year]
     Q_s = E_meas / E_theor  # (4.63)
 
     return Q_s
