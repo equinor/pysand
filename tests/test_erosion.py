@@ -192,7 +192,7 @@ weld_validation = [(15, 150, 0.1, 0.3, 0.023, 60, 'upstream', (pytest.approx(0.0
                    (15, 150, 0.1, 0.3, 0.023, 60, 'downstream', (pytest.approx(0.002837, abs=10e-6)))]
 @pytest.mark.parametrize('v_m, rho_m, D, d_p, h, alpha, location, E', weld_validation)
 def test_weld(v_m, rho_m, D, d_p, h, alpha, location, E):
-    assert welded_joint(v_m, rho_m, D, d_p, h, alpha, location) == E
+    assert welded_joint(v_m, rho_m, D, d_p, h, alpha, location=location) == E
 
 
 # Manifolds #
@@ -281,7 +281,6 @@ def test_return_nan():
     v_m = 29.3
     rho_m = 30
     mu_m = 1.5e-5
-    #Q_s = 2400 * 1000 / 86400 / 365
     R = 1
     GF = 2
     D = .1

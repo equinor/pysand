@@ -26,7 +26,7 @@ def test_validate_inputs(caplog):
 
 
 
-clampon_validation = [(7.231897272, 25, 350, 0.12, .4, pytest.approx(4.64))]
-@pytest.mark.parametrize('E_meas, v_m, rho_m, D, d_p, E', clampon_validation)
+er_sand_rate_validation = [(7.231897272, 25, 350, 0.12, .4, pytest.approx(4.632, abs=1e-3))]
+@pytest.mark.parametrize('E_meas, v_m, rho_m, D, d_p, E', er_sand_rate_validation)
 def test_er_sand_rate(E_meas, v_m, rho_m, D, d_p, E):
     assert er_sand_rate(E_meas, v_m, rho_m, D, d_p) == E
