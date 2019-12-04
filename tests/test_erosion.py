@@ -58,8 +58,8 @@ def test_validate_inputs(caplog):
                 in s.message for s in info)
 
     num = 1
-    kwargs = {'R': num, 'GF': num, 'D': num, 'd_p': num, 'h': num, 'Dm': num, 'D1': num, 'D2': num}
-    for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
+    kwargs = {'R': num, 'GF': num, 'D': num, 'd_p': num, 'h': num, 'Dm': num, 'D1': num, 'D2': num, 'alpha': num}
+    for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'alpha']:
         for non_number in [None, 'string', np.nan, pd.Series().any()]:
             kwargs[inp] = non_number
             with pytest.raises(exc.FunctionInputFail) as excinfo:
@@ -97,17 +97,6 @@ def test_validate_inputs(caplog):
     with caplog.at_level(logging.WARNING):
         validate_inputs(**kwargs)
     assert "Geometry factor, GF, can only be 1, 2, 3 or 4" in str(caplog.records)
-
-    # Test alpha boundaries
-    kwargs = {'alpha': 1}
-    for illegal_input in [-1, 91]:
-        kwargs['alpha'] = illegal_input
-        with caplog.at_level(logging.WARNING):
-            validate_inputs(**kwargs)
-            info = [record for record in caplog.records if record.levelname == 'WARNING']
-            assert any(
-                "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg)."
-                in s.message for s in info)
 
     # Test bend radius boundaries
     kwargs = {'R': 1}
@@ -154,6 +143,23 @@ def test_validate_inputs(caplog):
     kwargs['gap'] = 0.2
     with pytest.raises(exc.FunctionInputFail):
         validate_inputs(**kwargs)
+
+def test_alpha_validation(caplog):
+    # weld
+    kwargs = {'v_m': 30, 'rho_m': 150, 'D': 0.1, 'd_p': 0.4, 'h': 0.023, 'alpha': 100}
+    with caplog.at_level(logging.WARNING):
+        welded_joint(**kwargs)
+    assert "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (0-90 deg)." in str(caplog.records)
+    # reducer
+    kwargs = {'v_m': 30, 'rho_m': 150, 'D1': 0.1, 'D2': 0.05, 'd_p': 0.4, 'alpha': 100}
+    with caplog.at_level(logging.WARNING):
+        reducer(**kwargs)
+    assert "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg)." in str(caplog.records)
+    # probes
+    kwargs = {'v_m': 30, 'rho_m': 150, 'D': 0.1, 'd_p': 0.4, 'alpha': 100}
+    with caplog.at_level(logging.WARNING):
+        probes(**kwargs)
+    assert "Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg)." in str(caplog.records)
 
 # Pipe bends #
 # Bend validation 1 based on the model validations in DNVGL RP-O501, Aug 2015

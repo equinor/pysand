@@ -56,7 +56,7 @@ def validate_inputs(**kwargs):
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -76,9 +76,6 @@ def validate_inputs(**kwargs):
     if 'GF' in kwargs:
         if kwargs['GF'] not in [1, 2, 3, 4]:
             logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
-    if 'alpha' in kwargs:
-        if (kwargs['alpha'] < 10) or (kwargs['alpha'] > 80):
-            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg).')
 
     # bend/choke gallery
     if 'R' in kwargs:
@@ -234,6 +231,9 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
     if validate_inputs(**kwargs):
         return np.nan
 
+    if (alpha < 0) or (alpha > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (0-90 deg).')
+
     rho_t, K, n, ad = material_properties(material)
 
     A_pipe = np.pi * D**2 / 4
@@ -291,9 +291,12 @@ def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
+
+    if (alpha < 10) or (alpha > 80):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg).')
 
     rho_t, K, n, ad = material_properties(material)
 
@@ -325,6 +328,9 @@ def probes(v_m, rho_m, D, d_p, alpha=60, material='duplex'):
     kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
+
+    if (alpha < 10) or (alpha > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
 
     rho_t, K, n, ad = material_properties(material)
 
