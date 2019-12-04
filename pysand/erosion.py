@@ -460,6 +460,10 @@ def erosion_rate(E_rel, Q_s):
     :param Q_s: Sand production rate [g/s]
     :return: Erosion Rate [mm/y]
     """
+    kwargs = {'Q_s': Q_s}
+    if validate_inputs(**kwargs):
+        return np.nan
+
     C_unit = 1000 * 3600 * 24 * 365.25
     E = (E_rel / 10**6) * (Q_s / 1000) * C_unit  # Annual surface thickness loss [mm/y] (4.35)
     return E

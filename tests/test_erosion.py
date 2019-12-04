@@ -8,13 +8,15 @@ from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
 
 def test_validate_inputs(caplog):
 
+    num = 1
     # Testing input throws exception throws exception
-    kwargs = {'v_m': 29.3, 'rho_m': 30, 'mu_m': 1.5e-5, 'Q_s': 2400*1000/86400/365}
+    kwargs = {'v_m': num, 'rho_m': num, 'mu_m': num, 'Q_s': num}
     for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         for non_number in [None, 'string', np.nan]:
             kwargs[inp] = non_number
             with pytest.raises(exc.FunctionInputFail) as excinfo:
                 validate_inputs(**kwargs)
+        kwargs[inp] = num
 
     # Test v_m boundaries
     kwargs = {'v_m': 201}
@@ -55,15 +57,18 @@ def test_validate_inputs(caplog):
                 "The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV)."
                 in s.message for s in info)
 
-    kwargs = {'R': 29.3, 'GF': 30, 'D': 1.5e-5, 'd_p': 1, 'h': 30, 'Dm': 30, 'D1': 30, 'D2': 30}
+    num = 1
+    kwargs = {'R': num, 'GF': num, 'D': num, 'd_p': num, 'h': num, 'Dm': num, 'D1': num, 'D2': num}
     for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2']:
         for non_number in [None, 'string', np.nan, pd.Series().any()]:
             kwargs[inp] = non_number
             with pytest.raises(exc.FunctionInputFail) as excinfo:
                 validate_inputs(**kwargs)
+        kwargs[inp] = num
 
     # Test pipe inner diameter boundaries
-    kwargs = {'D': 1, 'D1': 1, 'D2': 1}
+    D = 1
+    kwargs = {'D': D, 'D1': D, 'D2': D}
     for inp in ['D', 'D1', 'D2']:
         for illegal_input in [0.005, 5]:
             kwargs[inp] = illegal_input
@@ -73,6 +78,9 @@ def test_validate_inputs(caplog):
                 assert any(
                     "Pipe inner diameter, {}, is outside RP-O501 model boundaries (0.01 - 1 m).".format(inp)
                     in s.message for s in info)
+        kwargs['D'] = D
+        kwargs['D1'] = D
+        kwargs['D2'] = D
 
     # Test particle diameter boundaries
     kwargs = {'d_p': 1}
