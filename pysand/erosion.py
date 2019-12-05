@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import logging
 import pysand.exceptions as exc
 
@@ -35,8 +34,8 @@ def validate_inputs(**kwargs):
 
     for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         if i in kwargs:
-            if not isinstance(kwargs[i], (float, int, np.ndarray, pd.Series)) or np.isnan(kwargs[i]):
-                raise exc.FunctionInputFail('{} is not a number or pandas series'.format(i))
+            if not isinstance(kwargs[i], (float, int)) or np.isnan(kwargs[i]):
+                raise exc.FunctionInputFail('{} is not a number'.format(i))
             if not kwargs[i] >= 0:
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
                 return True
@@ -57,7 +56,7 @@ def validate_inputs(**kwargs):
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -77,9 +76,6 @@ def validate_inputs(**kwargs):
     if 'GF' in kwargs:
         if kwargs['GF'] not in [1, 2, 3, 4]:
             logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
-    if 'alpha' in kwargs:
-        if (kwargs['alpha'] < 10) or (kwargs['alpha'] > 90):
-            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
 
     # bend/choke gallery
     if 'R' in kwargs:
@@ -106,24 +102,23 @@ def validate_inputs(**kwargs):
             raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(l))
 
 
-def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
+def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
     '''
     Particle erosion in bends, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
     :param mu_m: Mix viscosity [kg/ms]
-    :param Q_s: Sand production rate [g/s]
     :param R: Bend-radius [# ID's]
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
-    :return: E = Erosion rate [mm/y]
+    :return: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -146,28 +141,28 @@ def bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material='duplex', rho_p=2650):
         G = gamma / gamma_c
     else:
         G = 1
-    # Calculate Erosion rate and return data
-    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * Q_s * 3600 * 24 * 365.25  # Erosion rate [mm/y] (4.34)
-    return E
+    # Calculate Relative surface thickness loss [mm/t] (4.34)
+    E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * 10 ** 6
+
+    return E_rel
 
 
-def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, material='duplex', rho_p=2650):
+def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650):
     '''
     Particle erosion in blinded tees, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
     :param mu_m: Mix viscosity [kg/ms]
-    :param Q_s: Sand production rate [g/s]
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
-    :return: E: Erosion rate [mm/y]
+    :return: E: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -195,47 +190,49 @@ def tee(v_m, rho_m, mu_m, Q_s, GF, D, d_p, material='duplex', rho_p=2650):
     G = (gamma/gamma_c)**c  # Particle size correction factor (4.44)
     At = np.pi / 4 * D ** 2  # Characteristic particle impact area [m2] (4.45)
     C_unit = 3600 * 24 * 365.25  # (4.46) 1e-3 lower due to g instead of kg
-    E = K * v_m**n / (rho_t * At) * G * C1 * GF * Q_s * C_unit  # Erosion rate [mm/y] (4.48)
-    return E
+    E_rel = K * v_m**n / (rho_t * At) * G * C1 * GF * 10 ** 6  # Relative surface thickness loss [mm/t] (4.34)
+    return E_rel
 
 
-def straight_pipe(v_m, Q_s, D):
+def straight_pipe(v_m, D):
     '''
     Particle erosion in smooth and straight pipes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
-    :param Q_s: Sand production rate [g/s]
     :param D: Pipe diameter [m]
-    :return: E: Erosion rate [mm/y]
+    :return: E: Relative erosion [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'Q_s': Q_s, 'D': D}
+    kwargs = {'v_m': v_m, 'D': D}
     if validate_inputs(**kwargs):
         return np.nan
-
-    E = 2.5e-5 * v_m**2.6 * D**(-2) * Q_s / 1000
+    C_unit = 1000 * 3600 * 24 * 365.25
+    E = 2.5e-5 * v_m**2.6 * D**(-2) * (1e6/C_unit)
     return E
 
 
-def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, material='duplex'):
+def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', material='duplex'):
     '''
     Particle erosion in welded joints, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
-    :param Q_s: Sand production rate [g/s]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param h: height of the weld [m]
     :param alpha: particle impact angle [degrees], default = 60
+    :param location: Erosion calculation locations 'downstream' or 'upstream' of weld, default = 'downstream'
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :return: E_up: Erosion rate flow facing part of weld [mm/year]
-    :return: E_down: Erosion rate downstream of weld [mm/year]
+    :return: E_up: Relative erosion at flow facing part of weld [mm/ton]
+    :return: E_down: Relative erosion downstream of weld [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'h': h}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
+
+    if (alpha < 0) or (alpha > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (0-90 deg).')
 
     rho_t, K, n, ad = material_properties(material)
 
@@ -246,54 +243,60 @@ def welded_joint(v_m, rho_m, Q_s, D, d_p, h, alpha=60, material='duplex'):
     C2 = 10**6 * d_p / 1000 / (30 * rho_m**.5)  # Particle size and fluid density correction factor (4.25)
     if C2 >= 1:
         C2 = 1
-    E_up = K * F(a_rad, ad) * v_m**n * np.sin(a_rad) / (rho_t * A_pipe) * C2 * C_unit * Q_s / 1000
-    E_down = 3.3e-2 * (7.5e-4 + h) * v_m**n * D**(-2) * Q_s / 1000
-    return E_up, E_down
+    if location == 'downstream':
+        E_down = 3.3e-2 * (7.5e-4 + h) * v_m**n * D**(-2) * (1e6/C_unit)
+        return E_down
+    elif location == 'upstream':
+        E_up = K * F(a_rad, ad) * v_m ** n * np.sin(a_rad) / (rho_t * A_pipe) * C2 * 10**6
+        return E_up
+    else:
+        raise exc.FunctionInputFail('Location must be either downstream or upstream. {} is passed.'.format(location))
 
 
-def manifold(v_m, rho_m, mu_m, Q_s, GF, D, d_p, Dm, material='duplex'):
+def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material='duplex'):
     '''
     Manifold model, pending inclusion in DNVGL RP-O501. Velocity and fluid properties in branch line.
     :param v_m: Mix velocity [m/s]
     :param rho_m: Branch line mix density [kg/m3]
     :param mu_m: Branch line mix viscosity [kg/ms]
-    :param Q_s: Sand production rate [g/s]
     :param GF: Geometry factor [-]
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param Dm: Manifold diameter [m]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :return: Manifold erosion rate [mm/year]
+    :return: Manifold relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'Q_s': Q_s, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
     if validate_inputs(**kwargs):
         return np.nan
 
     R = Dm / D - 0.5  # Synthetic bend radius
-    return bend(v_m, rho_m, mu_m, Q_s, R, GF, D, d_p, material=material)
+    return bend(v_m, rho_m, mu_m, R, GF, D, d_p, material=material)  # Relative surface thickness loss [mm/t]
 
 
-def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
+def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
     '''
     Particle erosion in reducers, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
-    :param Q_s: Sand production rate [g/s]
     :param D1: Upstream pipe diameter [m]
     :param D2: Downstream pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param GF: Geometry factor [-], default = 2
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :return: Reducer erosion rate [mm/year]
+    :return: Reducer relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
+
+    if (alpha < 10) or (alpha > 80):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg).')
 
     rho_t, K, n, ad = material_properties(material)
 
@@ -304,28 +307,30 @@ def reducer(v_m, rho_m, Q_s, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
     C2 = 10 ** 6 * d_p / 1000 / (30 * rho_m ** .5)  # Particle size and fluid density correction factor (4.53)
     if C2 >= 1:
         C2 = 1
-    C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.54)
-    E = K * F(a_rad, ad) * Up**n / (rho_t * At) * Aratio * C2 * GF * Q_s / 1000 * C_unit
-    return E
+
+    E_rel = K * F(a_rad, ad) * Up**n / (rho_t * At) * Aratio * C2 * GF * 10**6  # Relative surface thickness loss [mm/t]
+    return E_rel
 
 
-def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, material='duplex'):
+def probes(v_m, rho_m, D, d_p, alpha=60, material='duplex'):
     '''
     Particle erosion for intrusive erosion probes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
-    :param Q_s: Sand production rate [g/s]
     :param D: Branch pipe diameter [m]
     :param d_p: Particle diameter [mm]
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :return:
+    :return: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'Q_s': Q_s, 'D': D, 'd_p': d_p, 'alpha': alpha}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'alpha': alpha}
     if validate_inputs(**kwargs):
         return np.nan
+
+    if (alpha < 10) or (alpha > 90):
+            logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
 
     rho_t, K, n, ad = material_properties(material)
 
@@ -334,37 +339,35 @@ def probes(v_m, rho_m, Q_s, D, d_p, alpha=60, material='duplex'):
     C2 = 10 ** 6 * d_p / 1000 / (30 * rho_m ** .5)  # Particle size and fluid density correction factor (4.59)
     if C2 >= 1:
         C2 = 1
-    C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.60)
-    E = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * C2 * Q_s / 1000 * C_unit
-    return E
+
+    E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * C2 * 10**6  # Relative surface thickness loss [mm/t]
+    return E_rel
 
 
-def flexible(v_m, rho_m, mu_m, Q_s, mbr, D, d_p, material='duplex'):
+def flexible(v_m, rho_m, mu_m, mbr, D, d_p, material='duplex'):
     """
     Particle erosion for flexible pipes with interlock carcass, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
     :param mu_m: Mix viscosity [kg/ms]
-    :param Q_s: Sand production rate [g/s]
     :param mbr: Minimum Bending Radius in operation [# ID's]
     :param D: Minimum internal diameter for the interlock carcass [m]
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :return: Erosion rate [mm/y]
+    :return: Relative erosion rate [mm/ton]
     """
 
     GF = 2
-    E = bend(v_m, rho_m, mu_m, Q_s, mbr, GF, D, d_p, material=material)
-    return E
+    E_rel = bend(v_m, rho_m, mu_m, mbr, GF, D, d_p, material=material)  # Relative surface thickness loss [mm/t]
+    return E_rel
 
 
-def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_37_tungsten'):
+def choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material='cr_37_tungsten'):
     """
     Particle erosion for angle style choke gallery, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
     :param rho_m: Mix density [kg/m3]
     :param mu_m: Mix viscosity [kg/ms]
-    :param Q_s: Sand production rate [g/s]
     :param GF: Geometry factor [-]
     :param D: Upstream pipe diameter [m]
     :param d_p: Particle diameter [mm]
@@ -372,7 +375,7 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_3
     :param gap: Gap between the cage and choke body [m]
     :param H: Height (effective) of gallery [m]
     :param material: Material exposed to erosion, default = 'cr-37_tungsten' (CR-37 Tungsten Carbide). For others, run: materials()
-    :return: Erosion rate [mm/y]
+    :return: Relative erosion rate [mm/ton]
     """
 
     kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
@@ -385,9 +388,11 @@ def choke_gallery(v_m, rho_m, mu_m, Q_s, GF, D, d_p, R_c, gap, H, material='cr_3
     Q = v_m * np.pi / 4 * D**2  # Actual flow [m3/s]
     v_c = 3/4 * Q / Ag  # Velocity [m/s] (table 4-5)
     R = R_c/gap  # Checked with DNVGL on e-mail 23.08.17
-    E = bend(v_c, rho_m, mu_m, Q_s, R, GF, gap, d_p, material=material) / C1_bend * C1_choke
 
-    return E
+    # Relative surface thickness loss [mm/t]
+    E_rel = bend(v_c, rho_m, mu_m, R, GF, gap, d_p, material=material) / C1_bend * C1_choke
+
+    return E_rel
 
 
 def material_properties(material):
@@ -455,3 +460,16 @@ def materials():
     return material_properties('list')
 
 
+def erosion_rate(E_rel, Q_s):
+    """
+    :param E_rel: Relative Erosion [mm/ton]
+    :param Q_s: Sand production rate [g/s]
+    :return: Erosion Rate [mm/y]
+    """
+    kwargs = {'Q_s': Q_s}
+    if validate_inputs(**kwargs):
+        return np.nan
+
+    C_unit = 1000 * 3600 * 24 * 365.25
+    E = (E_rel / 10**6) * (Q_s / 1000) * C_unit  # Annual surface thickness loss [mm/y] (4.35)
+    return E
