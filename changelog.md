@@ -1,3 +1,6 @@
+## 1.5.1
+* Updated the example notebooks due to breaking change in v1.5
+
 # 1.5
 * Breaking change: Erosion results now in mm/ton instead of mm/year
 
