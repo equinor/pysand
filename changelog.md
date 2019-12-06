@@ -1,3 +1,6 @@
+## 1.5.2
+* Fixed bug in fluid properties test
+
 ## 1.5.1
 * Updated the example notebooks due to breaking change in v1.5
 
