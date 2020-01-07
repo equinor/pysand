@@ -1,3 +1,6 @@
+## 1.5.3
+* Added exponent to ASD sand rate calculation
+
 ## 1.5.2
 * Fixed bug in fluid properties test
 
