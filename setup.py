@@ -17,5 +17,5 @@ setup(name='pysand',
       url='https://github.com/equinor/pysand',
       classifiers=["Programming Language :: Python :: 3"],
       packages=['pysand'],
-      install_requires=['numpy', 'scipy']
+      install_requires=['numpy', 'scipy', 'pandas']
 )

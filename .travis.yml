@@ -4,6 +4,6 @@ python:
   - "3.6"
 
 script:
-  - pip3 install numpy scipy pytest
+  - pip3 install numpy scipy pytest pandas
   - pip3 install .
   - pytest
