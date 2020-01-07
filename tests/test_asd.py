@@ -49,22 +49,24 @@ def test_emerson(v_mix, GOR, E):
     assert std_step_emerson(v_mix, GOR) == E
 
 
-sand_rate_validation = [(5000, 5000, 2000, 0),
-                        (4000, 2000, 1000, 2),
-                        (2000, 4000, 500, 0),
-                        (2000, 1000, 0, None),
-                        (2000, 1000, -5000, None)]
-@pytest.mark.parametrize('raw, zero, step, E', sand_rate_validation)
-def test_sand_rate(raw, zero, step, E):
-    assert sand_rate(raw, zero, step) == E
+sand_rate_validation = [(5000, 5000, 2000, 1, 0),
+                        (4000, 2000, 1000, 1, 2),
+                        (2000, 4000, 500, 1, 0),
+                        (2000, 1000, 0, 1, None),
+                        (2000, 1000, -5000, 1, None),
+                        (4000, 1500, 8000, 1.6, pytest.approx(34.17, rel=1e-2))]
+@pytest.mark.parametrize('raw, zero, step, exp, E', sand_rate_validation)
+def test_sand_rate(raw, zero, step, exp, E):
+    assert sand_rate(raw, zero, step, exp=exp) == E
 
 
 def test_sand_rate_None_input():
     raw = 5000
     zero = 3000
     step = 500
-    kwargs = {'raw': raw, 'zero': zero, 'step': step}
-    for inp in ['raw', 'zero', 'step']:
+    exp = 1
+    kwargs = {'raw': raw, 'zero': zero, 'step': step, 'exp': exp}
+    for inp in ['raw', 'zero', 'step', 'exp']:
         kwargs[inp] = None
         with pytest.raises(exc.FunctionInputFail) as excinfo:
             sand_rate(**kwargs)
@@ -72,3 +74,4 @@ def test_sand_rate_None_input():
         kwargs['raw'] = raw
         kwargs['zero'] = zero
         kwargs['step'] = step
+        kwargs['exp'] = exp
