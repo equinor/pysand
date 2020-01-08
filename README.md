@@ -1,7 +1,7 @@
-<img src="https://raw.githubusercontent.com/equinor/pysand/master/resources/logo.png" align="center" title="pySand"/>
-
 [![PyPI version](https://badge.fury.io/py/pysand.svg)](https://badge.fury.io/py/pysand)
 [![Build status](https://travis-ci.org/equinor/pysand.svg?master)](https://travis-ci.org/equinor/pysand)
+
+<img src="https://raw.githubusercontent.com/equinor/pysand/master/resources/logo.png" align="center" title="pySand"/>
 
 PySand is a python package with sand management related calculations for oil and gas industry developed by Equinor.
 * Acoustic sand detectors standard calibration and quantification
@@ -32,3 +32,8 @@ Jupyter Notebooks with example usage can be found in the example directory:
 
 Bringing them all together:
 * [All pySand modules](examples/all_modules.ipynb)
+
+### Contributing
+If you want to contribute to the project and make it better, your help
+is very welcome. Follow the following instructions and read the 
+[CONTRIBUTING.md](CONTRIBUTING.md) file before getting started.
