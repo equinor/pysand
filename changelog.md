@@ -1,3 +1,6 @@
+## 1.5.5
+* Added sand transport models
+
 ## 1.5.3
 * Added Travis CI pipeline
 
