@@ -1,5 +1,9 @@
 from scipy import optimize
 import numpy as np
+import logging
+import pysand.exceptions as exc
+
+logger = logging.getLogger(__name__)
 
 # Constants
 g = 9.80665  # Standard gravity [m/s^2]
@@ -18,6 +22,12 @@ def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
     :return: list of critical velocities for transitions from stationary to moving bed
     and from moving bed to dispersed transport [m/s]
     """
+
+    # Input validation
+    kwargs = {'D': D, 'rho_l': rho_l, 'mu_l': mu_l, 'd_p': d_p, 'e': e, 'rho_p': rho_p}
+    if validate_inputs(**kwargs):
+        return np.nan
+
     d_p = d_p / 1000  # from mm to m
     nu = mu_l / rho_l  # Liquid kinematic viscotity [m2/s]
     result = []
@@ -92,6 +102,12 @@ def stokes(rho_m, mu_m, d_p, angle, rho_p=2650):
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz sand)
     :return: Particle settling velocity at point of interest [m/s]
     """
+
+    # Input validation
+    kwargs = {'rho_m': rho_m, 'mu_m': mu_m, 'd_p': d_p, 'angle': angle, 'rho_p': rho_p}
+    if validate_inputs(**kwargs):
+        return np.nan
+
     def f(v_est):
         Re = rho_m * d_p/1000 / mu_m * v_est
         if Re > 1899:
@@ -104,3 +120,22 @@ def stokes(rho_m, mu_m, d_p, angle, rho_p=2650):
     result = optimize.minimize_scalar(f, method='bounded', bounds=([0.001, 100]))
     if result.success:
         return np.round(result.x, 2)
+
+
+def validate_inputs(**kwargs):
+
+    for i in ['rho_m', 'rho_l', 'mu_m', 'mu_l', 'd_p', 'e', 'rho_p', 'D']:
+        if i in kwargs:
+            if not isinstance(kwargs[i], (float, int)) or np.isnan(kwargs[i]):
+                raise exc.FunctionInputFail('{} is not a number'.format(i))
+            if not kwargs[i] >= 0:
+                logger.warning('The model got negative value(s) of {} and returned nan.'.format(i))
+                return True
+
+    if 'angle' in kwargs:
+        if not isinstance(kwargs['angle'], (float, int)) or np.isnan(kwargs['angle']):
+            raise exc.FunctionInputFail('angle is not a number')
+        if (kwargs['angle'] < 0) or (kwargs['angle'] > 89):
+            raise exc.FunctionInputFail('The inclination has to be positive and below 90 deg.')
+
+    return
