@@ -1,4 +1,4 @@
-## 1.5.5
+## 1.6
 * Added sand transport models
 
 ## 1.5.4
