@@ -70,22 +70,23 @@ def std_step_emerson(v_m, GOR):
     return step
 
 
-def sand_rate(raw, zero, step):
+def sand_rate(raw, zero, step, exp=1):
     '''
     ASD sand rate calculation
     :param raw: raw value from ASD
     :param zero: Background noise zero value (no sand production)
     :param step: Sand noise
+    :param exp: Linearity exponent (calibration constant)
     :return: Sand rate [g/s]
     '''
 
-    for key, value in {'raw': raw, 'zero': zero, 'step': step}.items():
+    for key, value in {'raw': raw, 'zero': zero, 'step': step, 'exp': exp}.items():
         if value is None:
             raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(key))
 
     if raw > zero:
         try:
-            Qs = (raw - zero) / step
+            Qs = (raw - zero)**exp / step
         except ZeroDivisionError:
             logger.warning('Step value equal to zero, calculation not possible')
             Qs = None
