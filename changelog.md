@@ -1,3 +1,6 @@
+## 1.5.4
+* Added exponent to ASD sand rate calculation
+
 ## 1.5.3
 * Added Travis CI pipeline
 
