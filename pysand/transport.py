@@ -120,6 +120,9 @@ def stokes(rho_m, mu_m, d_p, angle, rho_p=2650):
     result = optimize.minimize_scalar(f, method='bounded', bounds=([0.001, 100]))
     if result.success:
         return np.round(result.x, 2)
+    else:
+        logger.warning('The model was not able to converge and returned nan.')
+        return np.nan
 
 
 def validate_inputs(**kwargs):
