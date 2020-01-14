@@ -1,3 +1,6 @@
+## 1.6
+* Added sand transport models
+
 ## 1.5.4
 * Added exponent to ASD sand rate calculation
 
