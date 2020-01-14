@@ -42,14 +42,14 @@ def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
         '''
 
         if Re < 0:
-            print('Reynolds number =', Re, '. Cannot be negative')
+            logger.warning('Reynolds number = {}. Cannot be negative'.format(Re))
         if Re < 2000:
             f = 64 / Re  # Laminar flow
             return f
         if ed > 0.05:
-            print('epsilon/diameter ratio =', ed, 'is not on Moody chart')
+            logger.warning('epsilon/diameter ratio = {}, is not on Moody chart'.format(ed))
         if Re < 4000:
-            print('Re = ', Re, ' in transition range')
+            logger.info('Reynolds number, Re = {}, is in the transition range'.format(Re))
 
         # Use fzero to find f from the Colebrook equation.
         # colebrook is a function to evaluate F(f,e/d,Re)
@@ -66,7 +66,7 @@ def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
 
         # sanity check:
         if fzero < 0:
-            print('Friction factor = ', fzero, ', but cannot be negative')
+            logger.warning('Friction factor = {}, cannot be negative'.format(fzero))
         return fzero
 
     def critical_u(u, m):
