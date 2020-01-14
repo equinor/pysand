@@ -8,6 +8,7 @@ PySand is a python package with sand management related calculations for oil and
 * Basic (black oil) fluid properties
 * DNVGL RP-O501 erosion rate calculations 
 * ER probe sand quantification
+* Sand transport models
 
 ### Installation instructions
 ```
@@ -29,6 +30,7 @@ Jupyter Notebooks with example usage can be found in the example directory:
 * [Acoustic sand detector](examples/asd.ipynb)
 * [Erosion](examples/erosion.ipynb)
 * [Fluid properties](examples/fluidproperties.ipynb)
+* [Sand transport](examples/sand_transport.ipynb)
 
 Bringing them all together:
 * [All pySand modules](examples/all_modules.ipynb)
