@@ -1,4 +1,7 @@
-## 1.6
+## 1.6.1
+* Added sand transport examples notebook
+
+# 1.6
 * Added sand transport models
 
 ## 1.5.4
