@@ -104,3 +104,40 @@ def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
     # Calculations
     mu_m = (mu_o + Qw/Qo * mu_w + Qg/Qo*P0*T*Z / (P * T0) * mu_g) / (1 + Qw/Qo + Qg/Qo*P0*T*Z / (P * T0))
     return np.round(mu_m, 6)
+
+
+def liq_density(Qo, Qw, rho_o, rho_w):
+    """
+    :param Qo: Oil rate [Sm3/d]
+    :param Qw: Water rate [Sm3/d]
+    :param rho_o: Oil density at std conditions [kg/m3]
+    :param rho_w: Water density at std conditions [kg/m3]
+    :return: Liquid density
+    """
+
+    kwargs = {'Qo': Qo, 'Qw': Qw, 'rho_o': rho_o, 'rho_w': rho_w}
+    if validate_fluid_props(**kwargs):
+        return np.nan
+
+    rho_l = (rho_o * Qo + rho_w * Qw) / (Qo + Qw)
+
+    return rho_l
+
+
+def liq_viscosity(Qo, Qw, mu_o, mu_w):
+    """
+    :param Qo: Oil rate [Sm3/d]
+    :param Qw: Water rate [Sm3/d]
+    :param mu_o: Oil viscosity
+    :param mu_w: Water viscosity
+    :return: Liquid viscosity
+    """
+
+    kwargs = {'Qo': Qo, 'Qw': Qw, 'mu_o': mu_o, 'mu_w': mu_w}
+    if validate_fluid_props(**kwargs):
+        return np.nan
+
+    mu_l = (mu_o * Qo + mu_w * Qw) / (Qo + Qw)
+
+    return mu_l
+
