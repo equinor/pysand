@@ -1,3 +1,6 @@
+## 1.6.2
+* Added liquid properties (density and viscosity)
+
 ## 1.6.1
 * Added sand transport examples notebook
 

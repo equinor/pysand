@@ -1,6 +1,7 @@
 import pytest
 import pysand.exceptions as exc
-from pysand.fluidproperties import mix_velocity, mix_density, mix_viscosity, validate_fluid_props
+from pysand.fluidproperties import mix_velocity, mix_density, mix_viscosity, liq_density, liq_viscosity,\
+    validate_fluid_props
 
 
 def test_validate_fluid_props():
@@ -31,3 +32,15 @@ viscosity_validation = [(40, 80, 4000, 300, 400000, 2, 1, 1e-3, .9, 0.538166)]
 @pytest.mark.parametrize('P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z, E', viscosity_validation)
 def test_mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z, E):
     assert mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z) == E
+
+
+liq_density_validation = [(4000, 300, 700, 1000, 720.930232)]
+@pytest.mark.parametrize('Qo, Qw, rho_o, rho_w, E', liq_density_validation)
+def test_liq_density(Qo, Qw, rho_o, rho_w, E):
+    assert liq_density(Qo, Qw, rho_o, rho_w) == pytest.approx(E, abs=1e-6)
+
+
+liq_viscosity_validation = [(4000, 300, 2, 1, 1.930232)]
+@pytest.mark.parametrize('Qo, Qw, mu_o, mu_w, E', liq_viscosity_validation)
+def test_liq_viscosity(Qo, Qw, mu_o, mu_w, E):
+    assert liq_viscosity(Qo, Qw, mu_o, mu_w) == pytest.approx(E, abs=1e-6)
