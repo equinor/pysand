@@ -108,6 +108,7 @@ def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
 
 def liq_density(Qo, Qw, rho_o, rho_w):
     """
+    Weighted average of oil and water densities
     :param Qo: Oil rate [Sm3/d]
     :param Qw: Water rate [Sm3/d]
     :param rho_o: Oil density at std conditions [kg/m3]
@@ -126,6 +127,7 @@ def liq_density(Qo, Qw, rho_o, rho_w):
 
 def liq_viscosity(Qo, Qw, mu_o, mu_w):
     """
+    Weighted average of oil and water viscosities
     :param Qo: Oil rate [Sm3/d]
     :param Qw: Water rate [Sm3/d]
     :param mu_o: Oil viscosity
