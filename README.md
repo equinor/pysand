@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/equinor/pysand/master/resources/logo.png" align="center" title="pySand"/>
 
-[![PyPI version](https://badge.fury.io/py/pysand.svg)](https://badge.fury.io/py/pysand)
+![PyPI](https://img.shields.io/pypi/v/pysand)
 [![Build status](https://travis-ci.org/equinor/pysand.svg?master)](https://travis-ci.org/equinor/pysand)
 
 PySand is a python package with sand management related calculations for oil and gas industry developed by Equinor.
