@@ -237,7 +237,6 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
 
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
-    At = A_pipe / np.sin(a_rad)  # Area exposed to erosion (4.23)
     C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.24)
     C2 = 10**6 * d_p / 1000 / (30 * rho_m**.5)  # Particle size and fluid density correction factor (4.25)
     if C2 >= 1:
