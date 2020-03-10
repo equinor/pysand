@@ -56,7 +56,7 @@ def validate_inputs(**kwargs):
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha', 'At']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -394,6 +394,38 @@ def choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material='cr_37_tun
 
     return E_rel
 
+def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
+    """
+    Particle valve wall erosion for non-slam nozzle type check-valve. Based on DNVGL CFD-study of Johan Sverdrup Phase 1 check-valves (13.01.2020)
+    Report No: 2019-1237 Rev.1, Document No: 547341
+    :param v_m: Internal valve mix velocity [m/s]. Use mixture velocity through minimum flow area of the valve.
+    :param GF: Geometry factor [-]
+    :param A_t: Target area [m²]. Set to minimum flow area of the valve. 
+    :param d_p: Particle diameter [mm]
+    :param material: Material exposed to erosion, default = 'duplex'. For others, run: materials()
+    :return: Relative erosion rate [mm/ton]
+    """
+    # Input validation
+    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'A_t': At}
+    if validate_inputs(**kwargs):
+        return np.nan
+    
+    # Stricter particle size validation
+    if (d_p > 0.6):
+            exc.FunctionInputFail('Particle diameter, d_p, is highter than CFD-study boundary (0.6 mm).')
+
+    # Constants:
+    def c1(d_p):
+        corr = 8.33 * 10**(-9) * d_p**3 - 2.92 * 10**(-5) * d_p**2 + 2.28 * 10**(-2) * d_p + 1
+        return corr
+    C1 = c1(d_p) # Model geometry factor
+
+    rho_t, K, _, n = material_properties(material)
+
+    # Calculate Relative surface thickness loss [mm/t] (4.34)
+    E_rel = K * v_m ** n / (rho_t * At) * C1 * GF * 10 ** 6
+
+    return E_rel
 
 def material_properties(material):
     """
