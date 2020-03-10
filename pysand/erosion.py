@@ -166,7 +166,7 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650):
     if validate_inputs(**kwargs):
         return np.nan
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, _ = material_properties(material)
 
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
@@ -189,7 +189,6 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650):
         C1 = 1
     G = (gamma/gamma_c)**c  # Particle size correction factor (4.44)
     At = np.pi / 4 * D ** 2  # Characteristic particle impact area [m2] (4.45)
-    C_unit = 3600 * 24 * 365.25  # (4.46) 1e-3 lower due to g instead of kg
     E_rel = K * v_m**n / (rho_t * At) * G * C1 * GF * 10 ** 6  # Relative surface thickness loss [mm/t] (4.34)
     return E_rel
 
@@ -420,10 +419,8 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
         return corr
     C1 = c1(d_p) # Model geometry factor
 
-    rho_t, K, _, n = material_properties(material)
-
-    # Calculate Relative surface thickness loss [mm/t] (4.34)
-    E_rel = K * v_m ** n / (rho_t * At) * C1 * GF * 10 ** 6
+    rho_t, K, _, n = material_properties(material) # Material properties
+    E_rel = K * v_m ** n / (rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
 
     return E_rel
 
