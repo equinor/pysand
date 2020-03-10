@@ -231,6 +231,12 @@ gallery_validation = [(30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'duplex', pytes
 def test_choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material, E):
     assert choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material=material) == E
 
+# Nozzle valve wall #
+nozzle_valve_wall_validation = [(10, 0.1, 1, 0.03, 'duplex', pytest.approx(0.005065, abs=10e-6)),
+                      (20, 0.3, 2, 0.03, 'duplex', pytest.approx(0.111447, abs=10e-6))]
+@pytest.mark.parametrize('v_m, d_p, GF, At, material, E', nozzle_valve_wall_validation)
+def test_nozzle_valve_wall(v_m, d_p, GF, At, material, E):
+    assert nozzlevalve_wall(v_m, d_p, GF, At, material=material) == E
 
 # Test Erosion Rate Calculation
 erosion_rate_validation = [(0.003665, 1.2, pytest.approx(0.1387903, abs=10e-6)),
