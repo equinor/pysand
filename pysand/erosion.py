@@ -99,7 +99,7 @@ def validate_inputs(**kwargs):
                 raise exc.FunctionInputFail('{} has to be larger than 0'.format(l))
     if 'R_c' in kwargs and 'gap' in kwargs:
         if kwargs['gap'] > kwargs['R_c']:
-            raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(l))
+            raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius')
 
 
 def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
