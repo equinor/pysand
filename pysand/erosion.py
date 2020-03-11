@@ -414,12 +414,12 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
 
     # Constants:
     def c1(d_p):
-        corr = 8.33 * d_p**3 - 2.92 * 10 * d_p**2 + 2.28 * d_p + 1
+        corr = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1
         return corr
     C1 = c1(d_p) # Model geometry factor
 
     rho_t, K, _, n = material_properties(material) # Material properties
-    E_rel = K * v_m ** n / (rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
+    E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
 
     return E_rel
 
