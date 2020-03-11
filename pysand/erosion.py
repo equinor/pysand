@@ -412,13 +412,9 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
     if (d_p > 0.6):
             exc.FunctionInputFail('Particle diameter, d_p, is highter than CFD-study boundary (0.6 mm).')
 
-    # Constants:
-    def c1(d_p):
-        corr = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1
-        return corr
-    C1 = c1(d_p) # Model geometry factor
-
+    C1 = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1 # Model geometry factor
     rho_t, K, n, _ = material_properties(material) # Material properties
+    
     E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
 
     return E_rel
