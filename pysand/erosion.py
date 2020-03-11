@@ -398,13 +398,13 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
     Report No: 2019-1237 Rev.1, Document No: 547341
     :param v_m: Internal valve mix velocity [m/s]. Use mixture velocity through minimum flow area of the valve.
     :param GF: Geometry factor [-]
-    :param A_t: Target area [m²]. Set to minimum flow area of the valve. 
+    :param At: Target area [m²]. Set to minimum flow area of the valve. 
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex'. For others, run: materials()
     :return: Relative erosion rate [mm/ton]
     """
     # Input validation
-    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'A_t': At}
+    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At}
     if validate_inputs(**kwargs):
         return np.nan
     
@@ -418,7 +418,7 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
         return corr
     C1 = c1(d_p) # Model geometry factor
 
-    rho_t, K, _, n = material_properties(material) # Material properties
+    rho_t, K, n, _ = material_properties(material) # Material properties
     E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
 
     return E_rel
