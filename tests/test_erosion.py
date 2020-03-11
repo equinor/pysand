@@ -4,7 +4,7 @@ import pandas as pd
 import pysand.exceptions as exc
 import logging
 from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
-    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, material_properties, erosion_rate
+    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, material_properties, erosion_rate, nozzlevalve_wall
 
 def test_validate_inputs(caplog):
 
