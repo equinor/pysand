@@ -4,7 +4,7 @@ import pandas as pd
 import pysand.exceptions as exc
 import logging
 from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
-    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, material_properties, erosion_rate
+    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, material_properties, erosion_rate, nozzlevalve_wall
 
 def test_validate_inputs(caplog):
 
@@ -125,6 +125,12 @@ def test_validate_inputs(caplog):
                 "Height of the weld, h, must positive number not exceeding pipe inner diameter size, D"
                 in s.message for s in info)
 
+    # Test particle diameter limit for nozzlevalve wall
+    kwargs = {'d_p': 0.61, 'model': 'nozzlevalve_wall'}
+    with caplog.at_level(logging.WARNING):
+        validate_inputs(**kwargs)
+    assert "Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm)." in str(caplog.records)
+
     # Test choke gallery input
     R_c = 0.15
     gap = 0.04
@@ -231,6 +237,12 @@ gallery_validation = [(30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'duplex', pytes
 def test_choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material, E):
     assert choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material=material) == E
 
+# Nozzle valve wall #
+nozzle_valve_wall_validation = [(10, 0.1, 1, 0.03, 'duplex', pytest.approx(0.005065, abs=10e-6)),
+                      (20, 0.3, 2, 0.03, 'duplex', pytest.approx(0.111447, abs=10e-6))]
+@pytest.mark.parametrize('v_m, d_p, GF, At, material, E', nozzle_valve_wall_validation)
+def test_nozzle_valve_wall(v_m, d_p, GF, At, material, E):
+    assert nozzlevalve_wall(v_m, d_p, GF, At, material=material) == E
 
 # Test Erosion Rate Calculation
 erosion_rate_validation = [(0.003665, 1.2, pytest.approx(0.1387903, abs=10e-6)),

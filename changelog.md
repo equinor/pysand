@@ -1,3 +1,6 @@
+## 1.6.3
+* Added nozzle-valve wall erosion model (derived from CFD study by DNVGL)
+
 ## 1.6.2
 * Added liquid properties (density and viscosity)
 

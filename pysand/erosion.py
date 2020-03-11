@@ -56,7 +56,7 @@ def validate_inputs(**kwargs):
         if (ppmV < 0) or (ppmV > 500):
             logger.warning('The particle concentration is outside RP-O501 model boundaries ( 0-500 ppmV).')
 
-    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha']:
+    for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha', 'At']:
         if j in kwargs:
             if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
@@ -99,7 +99,12 @@ def validate_inputs(**kwargs):
                 raise exc.FunctionInputFail('{} has to be larger than 0'.format(l))
     if 'R_c' in kwargs and 'gap' in kwargs:
         if kwargs['gap'] > kwargs['R_c']:
-            raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius'.format(l))
+            raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius')
+
+    # Nozzlevalve wall
+    if 'model' in kwargs:
+        if kwargs['model'] == 'nozzlevalve_wall' and kwargs['d_p'] > 0.6:
+            logger.warning('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
 
 
 def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
@@ -166,7 +171,7 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650):
     if validate_inputs(**kwargs):
         return np.nan
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, _ = material_properties(material)
 
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
@@ -189,7 +194,6 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650):
         C1 = 1
     G = (gamma/gamma_c)**c  # Particle size correction factor (4.44)
     At = np.pi / 4 * D ** 2  # Characteristic particle impact area [m2] (4.45)
-    C_unit = 3600 * 24 * 365.25  # (4.46) 1e-3 lower due to g instead of kg
     E_rel = K * v_m**n / (rho_t * At) * G * C1 * GF * 10 ** 6  # Relative surface thickness loss [mm/t] (4.34)
     return E_rel
 
@@ -238,7 +242,6 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
 
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
-    At = A_pipe / np.sin(a_rad)  # Area exposed to erosion (4.23)
     C_unit = 3.15e10  # Conversion factor from m/s to mm/year (4.24)
     C2 = 10**6 * d_p / 1000 / (30 * rho_m**.5)  # Particle size and fluid density correction factor (4.25)
     if C2 >= 1:
@@ -394,6 +397,28 @@ def choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material='cr_37_tun
 
     return E_rel
 
+def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
+    """
+    Particle valve wall erosion for non-slam nozzle type check-valve. Based on DNVGL CFD-study of Johan Sverdrup Phase 1 check-valves (13.01.2020)
+    Report No: 2019-1237 Rev.1, Document No: 547341
+    :param v_m: Internal valve mix velocity [m/s]. Use mixture velocity through minimum flow area of the valve.
+    :param GF: Geometry factor [-]
+    :param At: Target area [m²]. Set to minimum flow area of the valve. 
+    :param d_p: Particle diameter [mm]
+    :param material: Material exposed to erosion, default = 'duplex'. For others, run: materials()
+    :return: Relative erosion rate [mm/ton]
+    """
+    # Input validation
+    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At, 'model': 'nozzlevalve_wall'}
+    if validate_inputs(**kwargs):
+        return np.nan
+    
+    C1 = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1 # Model geometry factor
+    rho_t, K, n, _ = material_properties(material) # Material properties
+
+    E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
+
+    return E_rel
 
 def material_properties(material):
     """
