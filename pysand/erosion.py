@@ -101,10 +101,10 @@ def validate_inputs(**kwargs):
         if kwargs['gap'] > kwargs['R_c']:
             raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius')
 
-    # Nozzle valve
-    if kwargs['model'] == 'nozzlevalve_wall':
-        if (kwargs['d_p'] > 0.6):
-            raise exc.FunctionInputFail('Particle diameter, d_p, is highter than CFD-study boundary (0.6 mm).')
+    # Nozzlevalve wall
+    if 'model' in kwargs:
+        if kwargs['model'] == 'nozzlevalve_wall' and kwargs['d_p'] > 0.6:
+            raise exc.FunctionInputFail('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
 
 
 def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):

@@ -125,6 +125,17 @@ def test_validate_inputs(caplog):
                 "Height of the weld, h, must positive number not exceeding pipe inner diameter size, D"
                 in s.message for s in info)
 
+    # Test particle diameter limit for nozzlevalve wall
+    kwargs = {'d_p': 0.61, 'model': 'nozzlevalve_wall'}
+    for illegal_input in [0.01, 1]:
+        kwargs['d_p'] = illegal_input
+        with caplog.at_level(logging.WARNING):
+            validate_inputs(**kwargs)
+            info = [record for record in caplog.records if record.levelname == 'WARNING']
+            assert any(
+                "Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm)."
+                in s.message for s in info)
+
     # Test choke gallery input
     R_c = 0.15
     gap = 0.04
