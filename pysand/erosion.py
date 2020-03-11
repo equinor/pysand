@@ -104,7 +104,7 @@ def validate_inputs(**kwargs):
     # Nozzlevalve wall
     if 'model' in kwargs:
         if kwargs['model'] == 'nozzlevalve_wall' and kwargs['d_p'] > 0.6:
-            raise exc.FunctionInputFail('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
+            logger.warning('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
 
 
 def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
