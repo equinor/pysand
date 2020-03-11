@@ -101,6 +101,11 @@ def validate_inputs(**kwargs):
         if kwargs['gap'] > kwargs['R_c']:
             raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius')
 
+    # Nozzle valve
+    if kwargs['model'] == 'nozzlevalve_wall':
+        if (kwargs['d_p'] > 0.6):
+            raise exc.FunctionInputFail('Particle diameter, d_p, is highter than CFD-study boundary (0.6 mm).')
+
 
 def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
     '''
@@ -404,7 +409,7 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
     :return: Relative erosion rate [mm/ton]
     """
     # Input validation
-    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At}
+    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At, 'model': 'nozzlevalve_wall'}
     if validate_inputs(**kwargs):
         return np.nan
     
@@ -414,7 +419,7 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
 
     C1 = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1 # Model geometry factor
     rho_t, K, n, _ = material_properties(material) # Material properties
-    
+
     E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
 
     return E_rel
