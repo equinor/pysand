@@ -413,10 +413,6 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex'):
     if validate_inputs(**kwargs):
         return np.nan
     
-    # Stricter particle size validation
-    if (d_p > 0.6):
-            exc.FunctionInputFail('Particle diameter, d_p, is highter than CFD-study boundary (0.6 mm).')
-
     C1 = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1 # Model geometry factor
     rho_t, K, n, _ = material_properties(material) # Material properties
 
