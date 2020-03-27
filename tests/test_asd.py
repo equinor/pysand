@@ -30,23 +30,23 @@ def test_validate_asd(caplog):
 clampon_validation = [(0, 50, 0),
                       (20, 70, 14500),
                       (50, 90, 38500),
-                      (-10, 400, None),
+                      (-10, 400, np.nan),
                       (22, 400, 38196),
                       (70, 500, 198900)]
 @pytest.mark.parametrize('v_mix, GLR, E', clampon_validation)
 def test_clampon(v_mix, GLR, E):
-    assert std_step_clampon(v_mix, GLR) == E
+    np.testing.assert_equal(std_step_clampon(v_mix, GLR), E)
 
 
 emerson_validation = [(0, 50, 1000),
                     (20, 70, 424200),
                     (50, 90, 6381000),
-                    (-10, 400, None),
+                    (-10, 400, np.nan),
                     (20, 400, 175498.8),
                     (70, 500, 2144593.8)]
 @pytest.mark.parametrize('v_mix, GOR, E', emerson_validation)
 def test_emerson(v_mix, GOR, E):
-    assert std_step_emerson(v_mix, GOR) == E
+    np.testing.assert_equal(std_step_emerson(v_mix, GOR), E)
 
 
 sand_rate_validation = [(5000, 5000, 2000, 1, 0),

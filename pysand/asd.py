@@ -29,7 +29,7 @@ def std_step_clampon(v_m, GLR):
 
     kwargs = {'v_m': v_m, 'GLR': GLR}
     if validate_asd(**kwargs):
-        return None
+        return np.nan
 
     # Standard Step values from Equinor wiki, Jan 18:
     step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
@@ -57,7 +57,7 @@ def std_step_emerson(v_m, GOR):
 
     kwargs = {'v_m': v_m, 'GOR': GOR}
     if validate_asd(**kwargs):
-        return None
+        return np.nan
 
     # Standard Step values from Equinor wiki, Jan 18:
     if GOR > 150:
