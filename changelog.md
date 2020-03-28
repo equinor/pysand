@@ -1,3 +1,6 @@
+## 1.6.4
+* std_step_clampon and std_step_emerson now returns np.nan instead of None when validate_asd returns True
+
 ## 1.6.3
 * Added nozzle-valve wall erosion model (derived from CFD study by DNVGL)
 
