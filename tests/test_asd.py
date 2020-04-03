@@ -31,6 +31,7 @@ clampon_validation = [(0, 50, 0),
                       (20, 70, 14500),
                       (50, 90, 38500),
                       (-10, 400, np.nan),
+                      (50, -10, np.nan),
                       (22, 400, 38196),
                       (70, 500, 198900)]
 @pytest.mark.parametrize('v_mix, GLR, E', clampon_validation)
@@ -42,6 +43,7 @@ emerson_validation = [(0, 50, 1000),
                     (20, 70, 424200),
                     (50, 90, 6381000),
                     (-10, 400, np.nan),
+                    (50, -10, np.nan),
                     (20, 400, 175498.8),
                     (70, 500, 2144593.8)]
 @pytest.mark.parametrize('v_mix, GOR, E', emerson_validation)
