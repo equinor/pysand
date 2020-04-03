@@ -52,12 +52,12 @@ def test_emerson(v_mix, GOR, E):
 sand_rate_validation = [(5000, 5000, 2000, 1, 0),
                         (4000, 2000, 1000, 1, 2),
                         (2000, 4000, 500, 1, 0),
-                        (2000, 1000, 0, 1, None),
-                        (2000, 1000, -5000, 1, None),
-                        (4000, 1500, 8000, 1.6, pytest.approx(34.17, rel=1e-2))]
+                        (2000, 1000, 0, 1, np.nan),
+                        (2000, 1000, -5000, 1, np.nan),
+                        (9000, 1000, 8000 ** 1.6, 1.6, 1)]
 @pytest.mark.parametrize('raw, zero, step, exp, E', sand_rate_validation)
 def test_sand_rate(raw, zero, step, exp, E):
-    assert sand_rate(raw, zero, step, exp=exp) == E
+    np.testing.assert_equal(sand_rate(raw, zero, step, exp=exp), E)
 
 
 def test_sand_rate_None_input():

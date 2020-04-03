@@ -88,12 +88,12 @@ def sand_rate(raw, zero, step, exp=1):
         try:
             Qs = (raw - zero)**exp / step
         except ZeroDivisionError:
-            logger.warning('Step value equal to zero, calculation not possible')
-            Qs = None
+            logger.warning('Step value equal to zero, sand rate set to NaN')
+            Qs = np.nan
         else:
             if Qs < 0:
-                logger.warning('Negative step')
-                Qs = None
+                logger.warning('Negative step. Sand rate set to NaN')
+                Qs = np.nan
     else:
         Qs = 0
 
