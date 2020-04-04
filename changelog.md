@@ -1,3 +1,6 @@
+## 1.6.5
+* sand_rate now returns np.nan instead of None when step is 0 or negative
+
 ## 1.6.4
 * std_step_clampon and std_step_emerson now returns np.nan instead of None when validate_asd returns True
 

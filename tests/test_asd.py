@@ -31,6 +31,7 @@ clampon_validation = [(0, 50, 0),
                       (20, 70, 14500),
                       (50, 90, 38500),
                       (-10, 400, np.nan),
+                      (50, -10, np.nan),
                       (22, 400, 38196),
                       (70, 500, 198900)]
 @pytest.mark.parametrize('v_mix, GLR, E', clampon_validation)
@@ -42,6 +43,7 @@ emerson_validation = [(0, 50, 1000),
                     (20, 70, 424200),
                     (50, 90, 6381000),
                     (-10, 400, np.nan),
+                    (50, -10, np.nan),
                     (20, 400, 175498.8),
                     (70, 500, 2144593.8)]
 @pytest.mark.parametrize('v_mix, GOR, E', emerson_validation)
@@ -52,12 +54,12 @@ def test_emerson(v_mix, GOR, E):
 sand_rate_validation = [(5000, 5000, 2000, 1, 0),
                         (4000, 2000, 1000, 1, 2),
                         (2000, 4000, 500, 1, 0),
-                        (2000, 1000, 0, 1, None),
-                        (2000, 1000, -5000, 1, None),
-                        (4000, 1500, 8000, 1.6, pytest.approx(34.17, rel=1e-2))]
+                        (2000, 1000, 0, 1, np.nan),
+                        (2000, 1000, -5000, 1, np.nan),
+                        (9000, 1000, 8000 ** 1.6, 1.6, 1)]
 @pytest.mark.parametrize('raw, zero, step, exp, E', sand_rate_validation)
 def test_sand_rate(raw, zero, step, exp, E):
-    assert sand_rate(raw, zero, step, exp=exp) == E
+    np.testing.assert_equal(sand_rate(raw, zero, step, exp=exp), E)
 
 
 def test_sand_rate_None_input():
