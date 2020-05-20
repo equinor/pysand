@@ -210,6 +210,7 @@ def straight_pipe(v_m, D):
     kwargs = {'v_m': v_m, 'D': D}
     if validate_inputs(**kwargs):
         return np.nan
+    # test
     C_unit = 1000 * 3600 * 24 * 365.25
     E = 2.5e-5 * v_m**2.6 * D**(-2) * (1e6/C_unit)
     return E
