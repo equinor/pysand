@@ -1,3 +1,6 @@
+# 1.7
+* Added choke operation models from DNVGL RP-O501
+
 ## 1.6.5
 * sand_rate now returns np.nan instead of None when step is 0 or negative
 
