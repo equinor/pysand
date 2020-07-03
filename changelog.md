@@ -1,3 +1,6 @@
+## 1.7.1
+* Added gitignore and initialisation of test directory
+
 # 1.7
 * Added choke operation models from DNVGL RP-O501
 
