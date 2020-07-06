@@ -147,7 +147,7 @@ def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650):
     else:
         G = 1
     # Calculate Relative surface thickness loss [mm/t] (4.34)
-    E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * 10 ** 8
+    E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * 10 ** 6
 
     return E_rel
 
