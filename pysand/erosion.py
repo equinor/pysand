@@ -34,7 +34,7 @@ def validate_inputs(**kwargs):
 
     for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         if i in kwargs:
-            if not isinstance(kwargs[i], (float, int)) or np.isnan(kwargs[i]):
+            if not isinstance(kwargs[i], (float, int, np.integer)) or np.isnan(kwargs[i]):
                 raise exc.FunctionInputFail('{} is not a number'.format(i))
             if not kwargs[i] >= 0:
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
