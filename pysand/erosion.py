@@ -58,7 +58,7 @@ def validate_inputs(**kwargs):
 
     for j in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'R_c', 'gap', 'H', 'alpha', 'At']:
         if j in kwargs:
-            if not isinstance(kwargs[j], (int, float)) or np.isnan(kwargs[j]):
+            if not isinstance(kwargs[j], (int, float, np.integer)) or np.isnan(kwargs[j]):
                 raise exc.FunctionInputFail('{} is not a number'.format(j))
 
     for k in ['D', 'D1', 'D2']:
