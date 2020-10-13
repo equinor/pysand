@@ -13,7 +13,7 @@ def validate_asd(**kwargs):
         if i in kwargs:
             if kwargs[i] is None:
                 raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(i))
-            if not isinstance(kwargs[i], (float, int)):
+            if not isinstance(kwargs[i], (float, int, np.integer)):
                 raise exc.FunctionInputFail('{} is not a number'.format(i))
             if not kwargs[i] >= 0:
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
