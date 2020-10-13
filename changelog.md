@@ -1,3 +1,6 @@
+## 1.7.2
+* Allow for numpy handling in selected validation functions
+
 ## 1.7.1
 * Added gitignore and initialisation of test directory
 
