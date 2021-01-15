@@ -1,3 +1,6 @@
+## 1.7.3
+* Bumped iteration start and maximum number of iterations for Hydro critical velocity calculation
+
 ## 1.7.2
 * Allow for numpy handling in selected validation functions
 
