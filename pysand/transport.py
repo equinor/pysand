@@ -84,7 +84,7 @@ def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
             return SH - SH_scouring
 
     for i in ['bed', 'scouring']:
-        vel = optimize.newton(critical_u, 1, args=(i,), tol=5e-6)
+        vel = optimize.newton(critical_u, 2, args=(i,), tol=5e-6, maxiter=100)
         result.append(np.round(vel, 2))
 
     return result
