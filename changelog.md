@@ -1,3 +1,6 @@
+## 1.7.4
+* Extended the clampon standard step function
+
 ## 1.7.3
 * Bumped iteration start and maximum number of iterations for Hydro critical velocity calculation
 

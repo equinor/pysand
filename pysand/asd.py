@@ -32,9 +32,9 @@ def std_step_clampon(v_m, GLR):
         return np.nan
 
     # Standard Step values from Equinor wiki, Jan 18:
-    step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 22, 30]
-    step_oil = [0, 425, 1500, 2500, 3100, 4500, 5500, 8100, 11300, 16100, 22500]
-    step_gas = [0, 525, 1500, 2500, 3200, 4800, 6500, 12320, 20740, 38196, 64980]
+    step_v_m = [0, 1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 28, 32, 36, 40, 45, 50]
+    step_oil = [0, 425, 1500, 2500, 3100, 4500, 5500, 8100, 11300, 14500, 17700, 20900, 24100, 27300, 30500, 34500, 38500]
+    step_gas = [0, 525, 1500, 2500, 3200, 4800, 6500, 12320, 20740, 31500, 44892, 58284, 74664, 94032, 113400, 137610, 161820]
     # Linear interpolation functions for STEP
     f_oil = interpolate.interp1d(step_v_m, step_oil, fill_value='extrapolate')
     f_gas = interpolate.interp1d(step_v_m, step_gas, fill_value='extrapolate')
