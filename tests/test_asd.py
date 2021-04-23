@@ -32,8 +32,8 @@ clampon_validation = [(0, 50, 0),
                       (50, 90, 38500),
                       (-10, 400, np.nan),
                       (50, -10, np.nan),
-                      (22, 400, 38196),
-                      (70, 500, 198900)]
+                      (24, 400, 44892),
+                      (70, 500, 258660)]
 @pytest.mark.parametrize('v_mix, GLR, E', clampon_validation)
 def test_clampon(v_mix, GLR, E):
     np.testing.assert_equal(std_step_clampon(v_mix, GLR), E)
