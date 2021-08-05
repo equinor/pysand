@@ -256,7 +256,7 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
         raise exc.FunctionInputFail('Location must be either downstream or upstream. {} is passed.'.format(location))
 
 
-def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material='duplex'):
+def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, rho_p=2650, material='duplex'):
     '''
     Manifold model, pending inclusion in DNVGL RP-O501. Velocity and fluid properties in branch line.
     :param v_m: Mix velocity [m/s]
@@ -271,12 +271,12 @@ def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material='duplex'):
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p, 'Dm': Dm}
+    kwargs = {'D': D, 'Dm': Dm}
     if validate_inputs(**kwargs):
         return np.nan
 
     R = Dm / D - 0.5  # Synthetic bend radius
-    return bend(v_m, rho_m, mu_m, R, GF, D, d_p, material=material)  # Relative surface thickness loss [mm/t]
+    return bend(v_m, rho_m, mu_m, R, GF, D, d_p, rho_p=rho_p, material=material)  # Relative surface thickness loss [mm/t]
 
 
 def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex'):
