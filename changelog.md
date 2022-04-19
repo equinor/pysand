@@ -1,3 +1,6 @@
+## 1.7.6
+* Allowed for all material properties to be retrieved from material function
+
 ## 1.7.5
 * Added particle density to manifold model and trimmed the validation on same model
 
