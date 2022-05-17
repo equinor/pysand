@@ -60,7 +60,7 @@ def test_validate_inputs(caplog):
     num = 1
     kwargs = {'R': num, 'GF': num, 'D': num, 'd_p': num, 'h': num, 'Dm': num, 'D1': num, 'D2': num, 'alpha': num}
     for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'alpha']:
-        for non_number in [None, 'string', np.nan, pd.Series().any()]:
+        for non_number in [None, 'string', np.nan, pd.Series(dtype='float64').any()]:
             kwargs[inp] = non_number
             with pytest.raises(exc.FunctionInputFail) as excinfo:
                 validate_inputs(**kwargs)
