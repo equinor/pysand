@@ -1,3 +1,6 @@
+## 1.7.5
+* Added particle density to manifold model and trimmed the validation on same model
+
 ## 1.7.4
 * Extended the clampon standard step function
 
