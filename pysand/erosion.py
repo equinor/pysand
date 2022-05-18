@@ -427,38 +427,43 @@ def material_properties(material):
     :return: rho_t (material density), K (material constant), n (material exponent), angle_dependency
     """
 
-    properties = {'carbon_steel': (7800, 2e-9, 2.6, 'ductile'),
-                  'duplex': (7850, 2e-9, 2.6, 'ductile'),
-                  'ss316': (8000, 2e-9, 2.6, 'ductile'),
-                  'inconel': (8440, 2e-9, 2.6, 'ductile'),
-                  'grp_epoxy': (1800, 3e-10, 3.6, 'ductile'),
-                  'grp_vinyl_ester': (1800, 6e-10, 3.6, 'ductile'),
-                  'hdpe': (1150, 3.5e-9, 2.9, 'ductile'),
-                  'aluminium': (2700, 5.8e-9, 2.3, 'ductile'),
-                  'dc_05_tungsten': (15250, 1.1e-10, 2.3, 'brittle'),
-                  'cs_10_tungsten': (14800, 3.2e-10, 2.2, 'brittle'),
-                  'cr_37_tungsten': (14600, 8.8e-11, 2.5, 'brittle'),
-                  '95_alu_oxide': (3700, 6.8e-8, 2, 'brittle'),
-                  '99_alu_oxide': (3700, 9.5e-7, 1.2, 'brittle'),
-                  'psz_ceramic_zirconia': (5700, 4.1e-9, 2.5, 'brittle'),
-                  'ZrO2-Y3_ceramic_zirconia': (6070, 4e-11, 2.7, 'brittle'),
-                  'SiC_silicon_carbide': (3100, 6.5e-9, 1.9, 'brittle'),
-                  'Si3N4_silicon_nitride': (3200, 2e-10, 2, 'brittle'),
-                  'TiB2_titanium_diboride': (4250, 9.3e-9, 1.9, 'brittle'),
-                  'B4C_boron_carbide': (2500, 3e-8, .9, 'brittle'),
-                  'SiSiC_ceramic_carbide': (3100, 7.4e-11, 2.7, 'brittle')}
+    properties = {
+                    'carbon_steel':             {'rho_t': 7800, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile'},
+                    'duplex':                   {'rho_t': 7850, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile'},
+                    'ss316':                    {'rho_t': 8000, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile'},
+                    'inconel':                  {'rho_t': 8440, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile'},
+                    'grp_epoxy':                {'rho_t': 1800, 'K': 3e-10, 'n': 3.6, 'angle_dependency': 'ductile'},
+                    'grp_vinyl_ester':          {'rho_t': 1800, 'K': 6e-10, 'n': 3.6, 'angle_dependency': 'ductile'},
+                    'hdpe':                     {'rho_t': 1150, 'K': 3.5e-9, 'n': 2.9, 'angle_dependency': 'ductile'},
+                    'aluminium':                {'rho_t': 2700, 'K': 5.8e-9, 'n': 2.3, 'angle_dependency': 'ductile'},
+                    'dc_05_tungsten':           {'rho_t': 15250, 'K': 1.1e-10, 'n': 2.3, 'angle_dependency': 'brittle'},
+                    'cs_10_tungsten':           {'rho_t': 14800, 'K': 3.2e-10, 'n': 2.2, 'angle_dependency': 'brittle'},
+                    'cr_37_tungsten':           {'rho_t': 14600, 'K': 8.8e-11, 'n': 2.5, 'angle_dependency': 'brittle'},
+                    '95_alu_oxide':             {'rho_t': 3700, 'K': 6.8e-8, 'n': 2, 'angle_dependency': 'brittle'},
+                    '99_alu_oxide':             {'rho_t': 3700, 'K': 9.5e-7, 'n': 1.2, 'angle_dependency': 'brittle'},
+                    'psz_ceramic_zirconia':     {'rho_t': 5700, 'K': 4.1e-9, 'n': 2.5, 'angle_dependency': 'brittle'},
+                    'ZrO2-Y3_ceramic_zirconia': {'rho_t': 6070, 'K': 4e-11, 'n': 2.7, 'angle_dependency': 'brittle'},
+                    'SiC_silicon_carbide':      {'rho_t': 3100, 'K': 6.5e-9, 'n': 1.9, 'angle_dependency': 'brittle'},
+                    'Si3N4_silicon_nitride':    {'rho_t': 3200, 'K': 2e-10, 'n': 2, 'angle_dependency': 'brittle'},
+                    'TiB2_titanium_diboride':   {'rho_t': 4250, 'K': 9.3e-9, 'n': 1.9, 'angle_dependency': 'brittle'},
+                    'B4C_boron_carbide':        {'rho_t': 2500, 'K': 3e-8, 'n': .9, 'angle_dependency': 'brittle'},
+                    'SiSiC_ceramic_carbide':    {'rho_t': 3100, 'K': 7.4e-11, 'n': 2.7, 'angle_dependency': 'brittle'}
+    }
 
     if material == 'list':
         return list(properties.keys())
+
+    if material == 'properties':
+        return properties
 
     if material not in properties:
         raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials()'
                                     .format(material))
 
-    rho_t = properties[material][0]
-    K = properties[material][1]
-    n = properties[material][2]
-    angle_dependency = properties[material][3]
+    rho_t = properties[material]['rho_t']
+    K = properties[material]['K']
+    n = properties[material]['n']
+    angle_dependency = properties[material]['angle_dependency']
 
     return rho_t, K, n, angle_dependency
 
