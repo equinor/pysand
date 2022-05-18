@@ -1,4 +1,0 @@
-###### Requirements ######
-pandas
-numpy >= 1.17
-scipy
