@@ -1,3 +1,6 @@
+## 1.7.7
+* Minor internal repository fixes
+
 ## 1.7.6
 * Allowed for all material properties to be retrieved from material function
 
