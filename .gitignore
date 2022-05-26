@@ -5,6 +5,7 @@ __pycache__
 build/
 dist/
 sdist/
+*.egg-info/
 
 # VS code
 .vscode/
