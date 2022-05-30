@@ -9,7 +9,7 @@ from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
 def test_validate_inputs(caplog):
 
     num = 1
-    # Testing input throws exception throws exception
+    # Testing input throws exception
     kwargs = {'v_m': num, 'rho_m': num, 'mu_m': num, 'Q_s': num}
     for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         for non_number in [None, 'string', np.nan]:
@@ -17,6 +17,12 @@ def test_validate_inputs(caplog):
             with pytest.raises(exc.FunctionInputFail) as excinfo:
                 validate_inputs(**kwargs)
         kwargs[inp] = num
+
+    kwargs = {'crushed': False}
+    for non_bool in [None, 'string', np.nan]:
+        kwargs['crushed'] = non_bool
+        with pytest.raises(exc.FunctionInputFail) as excinfo:
+            validate_inputs(**kwargs)
 
     # Test v_m boundaries
     kwargs = {'v_m': 201}
@@ -171,78 +177,128 @@ def test_alpha_validation(caplog):
 # Bend validation 1 based on the model validations in DNVGL RP-O501, Aug 2015
 # Bend validation 2 to test all versions of gamma
 # Bend validation 3 based on example in DNVGL RP-O501, Aug 2015, chapter 4.7
-bend_validation = [(29.3, 30, 1.5e-5, 1.75, 1, 0.0978, 0.28, 'duplex', pytest.approx(0.255158, abs=10e-6)),
-                   (15, 2, 4e-4, 1.5, 2, .1, .4, 'duplex', pytest.approx(0.003665, abs=10e-6)),
-                   (15, 333.3, 3.4e-4, 1.5, 1, 0.1, 0.25, 'duplex', pytest.approx(0.014322, abs=10e-6))]
+bend_validation = [
+                    (29.3, 30, 1.5e-5, 1.75, 1, 0.0978, 0.28, 'duplex', 0.255158),
+                    (15, 2, 4e-4, 1.5, 2, .1, .4, 'duplex', 0.003665),
+                    (15, 333.3, 3.4e-4, 1.5, 1, 0.1, 0.25, 'duplex', 0.014322)
+                   ]
+@pytest.mark.parametrize('crushed', [False, True])
 @pytest.mark.parametrize('v_m, rho_m, mu_m, R, GF, D, d_p, material, E', bend_validation)
-def test_bend(v_m, rho_m, mu_m, R, GF, D, d_p, material, E):
-    assert bend(v_m, rho_m, mu_m, R, GF, D, d_p, material=material) == E  # mm/ton
+def test_bend(v_m, rho_m, mu_m, R, GF, D, d_p, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert bend(v_m, rho_m, mu_m, R, GF, D, d_p, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)  # mm/ton
 
 
 # Blinded tees #
-tee_validation = [(30, 400, 1e-3, 2, 0.1, 0.3, 'duplex', pytest.approx(0.054024, abs=10e-6))]
+tee_validation = [
+                    (30, 400, 1e-3, 2, 0.1, 0.3, 'duplex', 0.054024)
+                ]
+@pytest.mark.parametrize('crushed', [False, True])
 @pytest.mark.parametrize('v_m, rho_m, mu_m, GF, D, d_p, material, E', tee_validation)
-def test_tee(v_m, rho_m, mu_m, GF, D, d_p, material, E):
-    assert tee(v_m, rho_m, mu_m, GF, D, d_p, material=material) == E
+def test_tee(v_m, rho_m, mu_m, GF, D, d_p, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert tee(v_m, rho_m, mu_m, GF, D, d_p, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 
 # Smooth and straight pipes #
-pipe_validation = [(15, 0.1, pytest.approx(9.05e-05, abs=10e-6))]
+pipe_validation = [
+                    (15, 0.1, 9.05e-05)
+                ]
+@pytest.mark.parametrize('crushed', [False, True])
 @pytest.mark.parametrize('v_m, D, E', pipe_validation)
-def test_pipe(v_m, D, E):
-    assert straight_pipe(v_m, D) == E
+def test_pipe(v_m, D, crushed, E):
+    if crushed:
+        E = 3*E
+    assert straight_pipe(v_m, D, crushed) == pytest.approx(E, abs=10e-6)
 
 
 # Welded joints #
-weld_validation = [(15, 150, 0.1, 0.3, 0.023, 60, 'upstream', (pytest.approx(0.021628, abs=10e-6))),
-                   (15, 150, 0.1, 0.3, 0.023, 60, 'downstream', (pytest.approx(0.002837, abs=10e-6)))]
+weld_validation = [
+                    (15, 150, 0.1, 0.3, 0.023, 60, 'upstream', 0.021628),
+                    (15, 150, 0.1, 0.3, 0.023, 60, 'downstream', 0.002837)
+                ]
+@pytest.mark.parametrize('crushed', [False, True])              
 @pytest.mark.parametrize('v_m, rho_m, D, d_p, h, alpha, location, E', weld_validation)
-def test_weld(v_m, rho_m, D, d_p, h, alpha, location, E):
-    assert welded_joint(v_m, rho_m, D, d_p, h, alpha, location=location) == E
+def test_weld(v_m, rho_m, D, d_p, h, alpha, location, crushed, E):
+    if crushed:
+        E = 3*E
+    assert welded_joint(v_m, rho_m, D, d_p, h, alpha, location=location, crushed=crushed) == pytest.approx(E, abs=10e-5)
 
 
 # Manifolds #
-manifold_validation = [(29.3, 30, 1.5e-5, 1, 0.0978, 0.28, 0.2, 'duplex',pytest.approx(0.269680, abs=10e-6)),
-                       (30, 1.2, 1.5e-5, 1, 0.128, 0.25, 0.2, 'duplex', pytest.approx(0.193534, abs=10e-6))]
+manifold_validation = [ 
+                        (29.3, 30, 1.5e-5, 1, 0.0978, 0.28, 0.2, 'duplex', 0.269680),
+                        (30, 1.2, 1.5e-5, 1, 0.128, 0.25, 0.2, 'duplex', 0.193534)
+                    ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, rho_m, mu_m, GF, D, d_p, Dm, material, E', manifold_validation)
-def test_manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material, E):
-    assert manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material=material) == E
+def test_manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 
 # Reducers #
-reducer_validation = [(20, 80, 0.15, 0.1, 0.3, 1, 50, 'duplex', pytest.approx(0.203008, abs=10e-6)),
-                      (20, 120, 0.15, 0.1, 0.3, 1, 50, 'duplex', pytest.approx(0.185320, abs=10e-6))]
+reducer_validation = [  
+                        (20, 80, 0.15, 0.1, 0.3, 1, 50, 'duplex', 0.203008),
+                        (20, 120, 0.15, 0.1, 0.3, 1, 50, 'duplex',0.185320)
+                    ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, rho_m, D1, D2, d_p, GF, alpha, material, E', reducer_validation)
-def test_reducer(v_m, rho_m, D1, D2, d_p, GF, alpha, material, E):
-    assert reducer(v_m, rho_m, D1, D2, d_p, GF=GF, alpha=alpha, material=material) == E
+def test_reducer(v_m, rho_m, D1, D2, d_p, GF, alpha, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert reducer(v_m, rho_m, D1, D2, d_p, GF=GF, alpha=alpha, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 
 # Erosion probes #
-probe_validation = [(30, 80, 0.15, 0.3, 50, 'duplex', pytest.approx(0.070741, abs=10e-6)),
-                      (20, 120, 0.15, 0.3, 30, 'duplex', pytest.approx(0.015708, abs=10e-6))]
+probe_validation = [    
+                        (30, 80, 0.15, 0.3, 50, 'duplex', 0.070741),
+                        (20, 120, 0.15, 0.3, 30, 'duplex', 0.015708)
+                    ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, rho_m, D, d_p, alpha, material, E', probe_validation)
-def test_probes(v_m, rho_m, D, d_p, alpha, material, E):
-    assert probes(v_m, rho_m, D, d_p, alpha=alpha, material=material) == E
+def test_probes(v_m, rho_m, D, d_p, alpha, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert probes(v_m, rho_m, D, d_p, alpha=alpha, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 # Flexible pipes with interlock carcass #
-flexible_validation = [(23, 350, 1e-4, 15, .124, .2, 'duplex',pytest.approx(0.009207, abs=10e-6))]
+flexible_validation = [ 
+                        (23, 350, 1e-4, 15, .124, .2, 'duplex', 0.009207)
+                    ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, rho_m, mu_m, mbr, D, d_p, material, E', flexible_validation)
-def test_flexible(v_m, rho_m, mu_m, mbr, D, d_p, material, E):
-    assert flexible(v_m, rho_m, mu_m, mbr, D, d_p, material=material) == E
+def test_flexible(v_m, rho_m, mu_m, mbr, D, d_p, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert flexible(v_m, rho_m, mu_m, mbr, D, d_p, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 # Choke gallery #
-gallery_validation = [(30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'duplex', pytest.approx(0.700978, abs=10e-6)),
-                      (30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'dc_05_tungsten', pytest.approx(0.001721, abs=10e-6))]
+gallery_validation = [
+                        (30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'duplex', 0.700978),
+                        (30, 450, 5e-4, 1, .15, .5, .15, .04, .15, 'dc_05_tungsten', 0.001721)
+                    ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material, E', gallery_validation)
-def test_choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material, E):
-    assert choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material=material) == E
+def test_choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 # Nozzle valve wall #
-nozzle_valve_wall_validation = [(10, 0.1, 1, 0.03, 'duplex', pytest.approx(0.005065, abs=10e-6)),
-                      (20, 0.3, 2, 0.03, 'duplex', pytest.approx(0.111447, abs=10e-6))]
+nozzle_valve_wall_validation = [    
+                                    (10, 0.1, 1, 0.03, 'duplex', 0.005065),
+                                    (20, 0.3, 2, 0.03, 'duplex', 0.111447)
+                                ]
+@pytest.mark.parametrize('crushed', [False, True]) 
 @pytest.mark.parametrize('v_m, d_p, GF, At, material, E', nozzle_valve_wall_validation)
-def test_nozzle_valve_wall(v_m, d_p, GF, At, material, E):
-    assert nozzlevalve_wall(v_m, d_p, GF, At, material=material) == E
+def test_nozzle_valve_wall(v_m, d_p, GF, At, material, crushed, E):
+    if crushed:
+        E = 3*E
+    assert nozzlevalve_wall(v_m, d_p, GF, At, material=material, crushed=crushed) == pytest.approx(E, abs=10e-6)
 
 # Test Erosion Rate Calculation
 erosion_rate_validation = [(0.003665, 1.2, pytest.approx(0.1387903, abs=10e-6)),

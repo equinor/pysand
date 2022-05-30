@@ -1,3 +1,6 @@
+## 1.7.8
+* Added option for crushed particles
+
 ## 1.7.7
 * Minor internal repository fixes
 
