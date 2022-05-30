@@ -42,7 +42,8 @@ def validate_inputs(**kwargs):
 
     if 'crushed' in kwargs:
         if not isinstance(kwargs['crushed'], bool):
-            raise exc.FunctionInputFail('{} is not a boolean'.format('crushed'))
+            i = kwargs['crushed']
+            raise exc.FunctionInputFail(f'Received {i} for crushed, which is not a boolean')
 
     if 'v_m' in kwargs:
         if kwargs['v_m'] > 200:
