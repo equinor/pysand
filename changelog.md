@@ -1,3 +1,6 @@
+## 1.7.9
+* Add name to material properties dictionary
+
 ## 1.7.8
 * Added option for crushed particles
 
