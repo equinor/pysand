@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def validate_asd(**kwargs):
+def validate_asd(**kwargs: float) -> bool:
     """
     Validation of all input parameters that go into std_step_clampon, std_step_emerson and sand_rate functions;
     """
@@ -19,7 +19,7 @@ def validate_asd(**kwargs):
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
                 return True
 
-def std_step_clampon(v_m, GLR):
+def std_step_clampon(v_m: float, GLR: float) -> float:
     '''
     Standard step calculation for Clampon ASD's
     :param v_m: fluid mix velocity at ASD [m/s]
@@ -47,7 +47,7 @@ def std_step_clampon(v_m, GLR):
     return step
 
 
-def std_step_emerson(v_m, GOR):
+def std_step_emerson(v_m: float, GOR: float) -> float:
     '''
     Standard step calculation for Emerson ASD's
     :param v_m: fluid mix velocity at ASD [m/s]
@@ -70,7 +70,7 @@ def std_step_emerson(v_m, GOR):
     return step
 
 
-def sand_rate(raw, zero, step, exp=1):
+def sand_rate(raw: float, zero: float, step: float, exp: float=1) -> float:
     '''
     ASD sand rate calculation
     :param raw: raw value from ASD

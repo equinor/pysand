@@ -1,11 +1,12 @@
 import numpy as np
 import logging
 import pysand.exceptions as exc
+from typing import TypedDict
 
 logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
 
-def validate_inputs(**kwargs):
+def validate_inputs(**kwargs) -> bool:
     """
     Validation of all input parameters that go into erosion models;
     Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
@@ -26,7 +27,7 @@ def validate_inputs(**kwargs):
     Gap cage and choke body (gap) ---        0           ---        Rc    ---
     Height of gallery (H)         ---        0           ---              ---
     -------------------------------------------------------------------------
-    Geometry factor can only be 1, 2, 3 or 4
+    Geometry factor can only be 1 or higher
     """
 
     if not 'rho_p' in kwargs:
@@ -79,8 +80,8 @@ def validate_inputs(**kwargs):
         if kwargs['d_p'] < 0:
             exc.FunctionInputFail('Particle diameter cannot be negative')
     if 'GF' in kwargs:
-        if kwargs['GF'] not in [1, 2, 3, 4]:
-            logger.warning('Geometry factor, GF, can only be 1, 2, 3 or 4')
+        if kwargs['GF'] < 1:
+            logger.warning('Geometry factor, GF, can only be 1 or higher')
 
     # bend/choke gallery
     if 'R' in kwargs:
@@ -112,7 +113,9 @@ def validate_inputs(**kwargs):
             logger.warning('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
 
 
-def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650, crushed=False):
+def bend(v_m: float, rho_m: float, mu_m: float, 
+         R: float, GF: float, D: float, d_p: float, 
+         material: str='duplex', rho_p: float=2650, crushed: bool=False) -> float:
     '''
     Particle erosion in bends, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -136,7 +139,7 @@ def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650, crushed
     # Constants:
     C1 = 2.5  # Model geometry factor for pipe bends
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, ad = get_material_properties(material)
 
     # Calculations
     a_rad = np.arctan(1 / (2 * R) ** (0.5))  # Pipe bend impact angle [radians] (4.28)
@@ -161,7 +164,9 @@ def bend(v_m, rho_m, mu_m, R, GF, D, d_p, material='duplex', rho_p=2650, crushed
         return E_rel
 
 
-def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650, crushed=False):
+def tee(v_m: float, rho_m: float, mu_m: float, GF: float, 
+        D: float, d_p: float, material: str='duplex', 
+        rho_p: float=2650, crushed: bool=False) -> float:
     '''
     Particle erosion in blinded tees, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -181,7 +186,7 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650, crushed=Fal
     if validate_inputs(**kwargs):
         return np.nan
 
-    rho_t, K, n, _ = material_properties(material)
+    rho_t, K, n, _ = get_material_properties(material)
 
     # Calculations
     gamma = d_p / 1000 / D  # Ratio of particle diameter to geometrical diameter (4.37)
@@ -211,7 +216,7 @@ def tee(v_m, rho_m, mu_m, GF, D, d_p, material='duplex', rho_p=2650, crushed=Fal
         return E_rel
 
 
-def straight_pipe(v_m, D, crushed=False):
+def straight_pipe(v_m: float, D: float, crushed: bool=False) -> float:
     '''
     Particle erosion in smooth and straight pipes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -232,7 +237,9 @@ def straight_pipe(v_m, D, crushed=False):
         return E_rel
 
 
-def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', material='duplex', crushed=False):
+def welded_joint(v_m: float, rho_m: float, D: float, d_p: float, 
+                 h: float, alpha: float=60, location: str='downstream', 
+                 material: str='duplex', crushed: bool=False) -> float:
     '''
     Particle erosion in welded joints, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -256,7 +263,7 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
     if (alpha < 0) or (alpha > 90):
             logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (0-90 deg).')
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, ad = get_material_properties(material)
 
     A_pipe = np.pi * D**2 / 4
     a_rad = np.deg2rad(alpha)
@@ -280,7 +287,9 @@ def welded_joint(v_m, rho_m, D, d_p, h, alpha=60, location='downstream', materia
         raise exc.FunctionInputFail('Location must be either downstream or upstream. {} is passed.'.format(location))
 
 
-def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, rho_p=2650, material='duplex', crushed=False):
+def manifold(v_m: float, rho_m: float, mu_m: float, GF: float, 
+             D: float, d_p: float, Dm: float, rho_p: float=2650, 
+             material: str='duplex', crushed: bool=False) -> float:
     '''
     Manifold model, pending inclusion in DNVGL RP-O501. Velocity and fluid properties in branch line.
     :param v_m: Mix velocity [m/s]
@@ -304,7 +313,9 @@ def manifold(v_m, rho_m, mu_m, GF, D, d_p, Dm, rho_p=2650, material='duplex', cr
     return bend(v_m, rho_m, mu_m, R, GF, D, d_p, rho_p=rho_p, material=material, crushed=crushed)  # Relative surface thickness loss [mm/t]
 
 
-def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex', crushed=False):
+def reducer(v_m: float, rho_m: float, D1: float, D2: float, 
+            d_p: float, GF: float=2, alpha: float=60, 
+            material: str='duplex', crushed: bool=False) -> float:
     '''
     Particle erosion in reducers, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -327,7 +338,7 @@ def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex', crushed=
     if (alpha < 10) or (alpha > 80):
             logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-80 deg).')
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, ad = get_material_properties(material)
 
     a_rad = np.deg2rad(alpha)
     At = np.pi/(4 * np.sin(a_rad))*(D1**2-D2**2)  # Characteristic particle impact area [m2] (4.50)
@@ -344,7 +355,8 @@ def reducer(v_m, rho_m, D1, D2, d_p, GF=2, alpha=60, material='duplex', crushed=
     else:
         return E_rel
 
-def probes(v_m, rho_m, D, d_p, alpha=60, material='duplex', crushed=False):
+def probes(v_m: float, rho_m: float, D: float, d_p: float, 
+           alpha: float=60, material: str='duplex', crushed: bool=False) -> float:
     '''
     Particle erosion for intrusive erosion probes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -365,7 +377,7 @@ def probes(v_m, rho_m, D, d_p, alpha=60, material='duplex', crushed=False):
     if (alpha < 10) or (alpha > 90):
             logger.warning('Particle impact angle [degrees], alpha, is outside RP-O501 model boundaries (10-90 deg).')
 
-    rho_t, K, n, ad = material_properties(material)
+    rho_t, K, n, ad = get_material_properties(material)
 
     a_rad = np.deg2rad(alpha)
     At = np.pi / 4 * D**2 * 1 / np.sin(a_rad)  # Eqv particle impact area for homogeneously distributed particles (4.58)
@@ -381,7 +393,8 @@ def probes(v_m, rho_m, D, d_p, alpha=60, material='duplex', crushed=False):
         return E_rel
 
 
-def flexible(v_m, rho_m, mu_m, mbr, D, d_p, material='duplex', crushed=False):
+def flexible(v_m: float, rho_m: float, mu_m: float, mbr: float, 
+             D: float, d_p: float, material: str='duplex', crushed: bool=False) -> float:
     """
     Particle erosion for flexible pipes with interlock carcass, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -404,7 +417,8 @@ def flexible(v_m, rho_m, mu_m, mbr, D, d_p, material='duplex', crushed=False):
         return E_rel
 
 
-def choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material='cr_37_tungsten', crushed=False):
+def choke_gallery(v_m: float, rho_m: float, mu_m: float, GF: float, D: float, d_p: float, 
+                  R_c: float, gap: float, H: float, material: str='cr_37_tungsten', crushed: bool=False) -> float:
     """
     Particle erosion for angle style choke gallery, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -440,7 +454,7 @@ def choke_gallery(v_m, rho_m, mu_m, GF, D, d_p, R_c, gap, H, material='cr_37_tun
         return E_rel
 
 
-def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex', crushed=False):
+def nozzlevalve_wall(v_m: float, d_p: float, GF: float, At: float, material: str='duplex', crushed: bool=False) -> float:
     """
     Particle valve wall erosion for non-slam nozzle type check-valve. Based on DNVGL CFD-study of Johan Sverdrup Phase 1 check-valves (13.01.2020)
     Report No: 2019-1237 Rev.1, Document No: 547341
@@ -458,7 +472,7 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex', crushed=False):
         return np.nan
     
     C1 = 8.33 * d_p**3 - 29.2 * d_p**2 + 22.8 * d_p + 1 # Model geometry factor
-    rho_t, K, n, _ = material_properties(material) # Material properties
+    rho_t, K, n, _ = get_material_properties(material) # Material properties
 
     E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
     
@@ -468,56 +482,64 @@ def nozzlevalve_wall(v_m, d_p, GF, At, material='duplex', crushed=False):
         return E_rel
 
 
+class MaterialInfo(TypedDict):
+    rho_t: float
+    K: float
+    n: float
+    angle_dependency: str
+    name: str
 
-def material_properties(material):
+
+material_dict: dict[str: MaterialInfo] = {
+                'carbon_steel':             {'rho_t': 7800, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Carbon steel'},
+                'duplex':                   {'rho_t': 7850, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Duplex'},
+                'ss316':                    {'rho_t': 8000, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'SS316'},
+                'inconel':                  {'rho_t': 8440, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Inconel'},
+                'grp_epoxy':                {'rho_t': 1800, 'K': 3e-10, 'n': 3.6, 'angle_dependency': 'ductile', 'name': 'GRP Epoxy'},
+                'grp_vinyl_ester':          {'rho_t': 1800, 'K': 6e-10, 'n': 3.6, 'angle_dependency': 'ductile', 'name': 'GRP Vinyl Ester'},
+                'hdpe':                     {'rho_t': 1150, 'K': 3.5e-9, 'n': 2.9, 'angle_dependency': 'ductile', 'name': 'HDPE'},
+                'aluminium':                {'rho_t': 2700, 'K': 5.8e-9, 'n': 2.3, 'angle_dependency': 'ductile', 'name': 'Aluminium'},
+                'dc_05_tungsten':           {'rho_t': 15250, 'K': 1.1e-10, 'n': 2.3, 'angle_dependency': 'brittle', 'name': 'DC-05 Tungsten'},
+                'cs_10_tungsten':           {'rho_t': 14800, 'K': 3.2e-10, 'n': 2.2, 'angle_dependency': 'brittle', 'name': 'CS-10 Tungsten'},
+                'cr_37_tungsten':           {'rho_t': 14600, 'K': 8.8e-11, 'n': 2.5, 'angle_dependency': 'brittle', 'name': 'CR-37 Tungsten'},
+                '95_alu_oxide':             {'rho_t': 3700, 'K': 6.8e-8, 'n': 2, 'angle_dependency': 'brittle', 'name': '95 Alu Oxide'},
+                '99_alu_oxide':             {'rho_t': 3700, 'K': 9.5e-7, 'n': 1.2, 'angle_dependency': 'brittle', 'name': '99 Alu Oxide'},
+                'psz_ceramic_zirconia':     {'rho_t': 5700, 'K': 4.1e-9, 'n': 2.5, 'angle_dependency': 'brittle', 'name': 'PSZ Ceramic Zirconia'},
+                'ZrO2-Y3_ceramic_zirconia': {'rho_t': 6070, 'K': 4e-11, 'n': 2.7, 'angle_dependency': 'brittle', 'name': 'ZrO2-Y3 Ceramic Zirconia'},
+                'SiC_silicon_carbide':      {'rho_t': 3100, 'K': 6.5e-9, 'n': 1.9, 'angle_dependency': 'brittle', 'name': 'Silicon Carbide'},
+                'Si3N4_silicon_nitride':    {'rho_t': 3200, 'K': 2e-10, 'n': 2, 'angle_dependency': 'brittle', 'name': 'Silicon Nitride'},
+                'TiB2_titanium_diboride':   {'rho_t': 4250, 'K': 9.3e-9, 'n': 1.9, 'angle_dependency': 'brittle', 'name': 'Titanium Diboride'},
+                'B4C_boron_carbide':        {'rho_t': 2500, 'K': 3e-8, 'n': .9, 'angle_dependency': 'brittle', 'name': 'Boron Carbide'},
+                'SiSiC_ceramic_carbide':    {'rho_t': 3100, 'K': 7.4e-11, 'n': 2.7, 'angle_dependency': 'brittle', 'name': 'Ceramic Carbide'},
+}
+
+def get_material_properties(material: str) -> tuple[float, float, float, str]:
     """
     Function to deal with material properties, reference to table 3-1 in DNVGL RP-O501, August 2015
     :param material: Material. For a full list of materials run: materials()
     :return: rho_t (material density), K (material constant), n (material exponent), angle_dependency, name
     """
 
-    properties = {
-                    'carbon_steel':             {'rho_t': 7800, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Carbon steel'},
-                    'duplex':                   {'rho_t': 7850, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Duplex'},
-                    'ss316':                    {'rho_t': 8000, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'SS316'},
-                    'inconel':                  {'rho_t': 8440, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Inconel'},
-                    'grp_epoxy':                {'rho_t': 1800, 'K': 3e-10, 'n': 3.6, 'angle_dependency': 'ductile', 'name': 'GRP Epoxy'},
-                    'grp_vinyl_ester':          {'rho_t': 1800, 'K': 6e-10, 'n': 3.6, 'angle_dependency': 'ductile', 'name': 'GRP Vinyl Ester'},
-                    'hdpe':                     {'rho_t': 1150, 'K': 3.5e-9, 'n': 2.9, 'angle_dependency': 'ductile', 'name': 'HDPE'},
-                    'aluminium':                {'rho_t': 2700, 'K': 5.8e-9, 'n': 2.3, 'angle_dependency': 'ductile', 'name': 'Aluminium'},
-                    'dc_05_tungsten':           {'rho_t': 15250, 'K': 1.1e-10, 'n': 2.3, 'angle_dependency': 'brittle', 'name': 'DC-05 Tungsten'},
-                    'cs_10_tungsten':           {'rho_t': 14800, 'K': 3.2e-10, 'n': 2.2, 'angle_dependency': 'brittle', 'name': 'CS-10 Tungsten'},
-                    'cr_37_tungsten':           {'rho_t': 14600, 'K': 8.8e-11, 'n': 2.5, 'angle_dependency': 'brittle', 'name': 'CR-37 Tungsten'},
-                    '95_alu_oxide':             {'rho_t': 3700, 'K': 6.8e-8, 'n': 2, 'angle_dependency': 'brittle', 'name': '95 Alu Oxide'},
-                    '99_alu_oxide':             {'rho_t': 3700, 'K': 9.5e-7, 'n': 1.2, 'angle_dependency': 'brittle', 'name': '99 Alu Oxide'},
-                    'psz_ceramic_zirconia':     {'rho_t': 5700, 'K': 4.1e-9, 'n': 2.5, 'angle_dependency': 'brittle', 'name': 'PSZ Ceramic Zirconia'},
-                    'ZrO2-Y3_ceramic_zirconia': {'rho_t': 6070, 'K': 4e-11, 'n': 2.7, 'angle_dependency': 'brittle', 'name': 'ZrO2-Y3 Ceramic Zirconia'},
-                    'SiC_silicon_carbide':      {'rho_t': 3100, 'K': 6.5e-9, 'n': 1.9, 'angle_dependency': 'brittle', 'name': 'Silicon Carbide'},
-                    'Si3N4_silicon_nitride':    {'rho_t': 3200, 'K': 2e-10, 'n': 2, 'angle_dependency': 'brittle', 'name': 'Silicon Nitride'},
-                    'TiB2_titanium_diboride':   {'rho_t': 4250, 'K': 9.3e-9, 'n': 1.9, 'angle_dependency': 'brittle', 'name': 'Titanium Diboride'},
-                    'B4C_boron_carbide':        {'rho_t': 2500, 'K': 3e-8, 'n': .9, 'angle_dependency': 'brittle', 'name': 'Boron Carbide'},
-                    'SiSiC_ceramic_carbide':    {'rho_t': 3100, 'K': 7.4e-11, 'n': 2.7, 'angle_dependency': 'brittle', 'name': 'Ceramic Carbide'},
-    }
+    if material not in material_dict:
+        raise exc.FunctionInputFail(f'The material {material} is not defined. For a full list of materials run get_materials()')
 
-    if material == 'list':
-        return list(properties.keys())
-
-    if material == 'properties':
-        return properties
-
-    if material not in properties:
-        raise exc.FunctionInputFail('The material {} is not defined. For a full list of materials run materials()'
-                                    .format(material))
-
-    rho_t = properties[material]['rho_t']
-    K = properties[material]['K']
-    n = properties[material]['n']
-    angle_dependency = properties[material]['angle_dependency']
+    rho_t = material_dict[material]['rho_t']
+    K = material_dict[material]['K']
+    n = material_dict[material]['n']
+    angle_dependency = material_dict[material]['angle_dependency']
 
     return rho_t, K, n, angle_dependency
 
+def get_materials() -> list[str]:
+    """
+    Function to return a list of all available materials
+    """
+    return list(material_dict.keys())
 
-def F(a_rad, angle_dependency):
+def get_materials_data() -> dict[str, MaterialInfo]:
+    return material_dict
+
+def F(a_rad: float, angle_dependency: str) -> float:
     """
     Angle dependency function, reference to DNVGL RP-O501, August 2015 (3.3)
     :param a_rad: impact angle [radians]
@@ -532,14 +554,8 @@ def F(a_rad, angle_dependency):
     else:
         raise exc.FunctionInputFail('Angle dependency {} is not defined.'.format(angle_dependency))
 
-def materials():
-    print('--------------------')
-    print('Available materials:')
-    print('--------------------')
-    return material_properties('list')
 
-
-def erosion_rate(E_rel, Q_s):
+def erosion_rate(E_rel: float, Q_s: float) -> float:
     """
     :param E_rel: Relative Erosion [mm/ton]
     :param Q_s: Sand production rate [g/s]

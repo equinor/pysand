@@ -19,7 +19,7 @@ def validate_fluid_props(**kwargs):
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
                 return True
 
-def mix_velocity(P, T, Qo, Qw, Qg, Z, D):
+def mix_velocity(P: float, T: float, Qo: float, Qw: float, Qg: float, Z: float, D: float) -> float:
     '''
     Blackoil mixture velocity model, based on DNVGL RP-O501, August 2015 edition
     :param P: Pressure [bar]
@@ -46,7 +46,8 @@ def mix_velocity(P, T, Qo, Qw, Qg, Z, D):
     return np.round(v_m, 2)
 
 
-def mix_density(P, T, Qo, Qw, Qg, rho_o, rho_w, MW, Z):
+def mix_density(P: float, T: float, Qo: float, Qw: float, Qg: float, 
+                rho_o: float, rho_w: float, MW: float, Z: float) -> float:
     '''
     Blackoil mixture density calculator, based on DNVGL RP-O501, August 2015 edition
     :param P: Pressure [bar]
@@ -76,7 +77,7 @@ def mix_density(P, T, Qo, Qw, Qg, rho_o, rho_w, MW, Z):
     return np.round(rho_m, 2)
 
 
-def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
+def mix_viscosity(P: float, T: float, Qo: float, Qw: float, Qg: float, mu_o: float, mu_w: float, mu_g: float, Z: float) -> float:
     '''
     Blackoil mixture viscosity calculator, based on DNVGL RP-O501, August 2015 edition
     Output viscosity units equals input units
@@ -106,7 +107,7 @@ def mix_viscosity(P, T, Qo, Qw, Qg, mu_o, mu_w, mu_g, Z):
     return np.round(mu_m, 6)
 
 
-def liq_density(Qo, Qw, rho_o, rho_w):
+def liq_density(Qo: float, Qw: float, rho_o: float, rho_w: float) -> float:
     """
     Weighted average of oil and water densities
     :param Qo: Oil rate [Sm3/d]
@@ -125,7 +126,7 @@ def liq_density(Qo, Qw, rho_o, rho_w):
     return rho_l
 
 
-def liq_viscosity(Qo, Qw, mu_o, mu_w):
+def liq_viscosity(Qo: float, Qw: float, mu_o: float, mu_w: float) -> float:
     """
     Weighted average of oil and water viscosities
     :param Qo: Oil rate [Sm3/d]

@@ -30,7 +30,7 @@ def validate_inputs(**kwargs):
                                    'to trust the quantification model.'.format(kwargs[i]))
 
 
-def er_sand_rate(E_meas, v_m, rho_m, D, d_p, alpha=60):
+def er_sand_rate(E_meas: float, v_m: float, rho_m: float, D: float, d_p: float, alpha: float=60) -> float:
     """
     ER probe sand rate calculation, model reference to DNVGL RP-O501, August 2015.
     This approach involve uncertainty, particularly at low bulk flow velocities; Should not be used when v_m < 5 m/s.

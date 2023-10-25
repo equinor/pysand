@@ -1,4 +1,4 @@
-def critical_velocity(p1, p2, rho_1, rho_2):
+def critical_velocity(p1: float, p2: float, rho_1: float, rho_2: float) -> float:
     """
     Throttling velocity in the choke
     DNVGL RP-O501, August 2015 - chapter 4.12.3
@@ -12,7 +12,7 @@ def critical_velocity(p1, p2, rho_1, rho_2):
     return v_c
 
 
-def min_choke(Qs, v_c):
+def min_choke(Qs: float, v_c: float) -> float:
     """
     Recommended minimum choke opening for plug/cage and cage/sleeve types of chokes
     DNVGL RP-O501, August 2015 - chapter 4.12.3
