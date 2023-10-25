@@ -4,22 +4,27 @@ on:
     types: [created]  
 jobs:  
   upload:  
-    runs-on: ubuntu-latest   
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://pypi.org/p/pysand
+    permissions:
+      contents: read
+      id-token: write
     steps:        
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1
         with:          
           python-version: 3.9      
-      - name: "Installs dependencies"            
+      - name: "Install dependencies"            
         run: |
           python3 -m pip install --upgrade pip              
           python3 -m pip install setuptools wheel twine                  
-      - name: "Builds and uploads to PyPI"            
-        env:              
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      - name: "Build distributions"            
         run: |              
-          python3 setup.py sdist bdist_wheel              
-          python3 -m twine upload dist/*            
+          python3 setup.py sdist bdist_wheel
+      - name: "Publish package distributions to PyPI"
+        uses: pypa/gh-action-pypi-publish@release/v1
+        
         
