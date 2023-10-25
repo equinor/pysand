@@ -12,7 +12,7 @@ g = 9.80665  # Standard gravity [m/s^2]
 def hydro(D: float, rho_l: float, mu_l: float, d_p: float, e: float=5e-5, rho_p: float=2650) -> list[float, float]:
     """
     Equinor sand transport model for horizontal pipelines
-    Based on T. Søntvedt (1995) and R. Schulkes (2002) work in Hydro
+    Derivative work based off of T. Søntvedt (1995) and R. Schulkes (2002) work in Hydro.
     :param D: Pipe diameter [m]
     :param rho_l: Liquid density [kg/m3]
     :param mu_l: Dynamic liquid viscosity [Pa.s]
