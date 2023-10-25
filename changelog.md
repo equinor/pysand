@@ -1,3 +1,8 @@
+## 1.8
+* Implemented type hinting
+* Removed warning for geometry factors above 4
+* Refactored material functions in `erosion.py`
+
 ## 1.7.9
 * Add name to material properties dictionary
 
