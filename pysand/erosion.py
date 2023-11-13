@@ -30,7 +30,7 @@ def validate_inputs(**kwargs) -> bool:
     Geometry factor can only be 1 or higher
     """
 
-    if not 'rho_p' in kwargs:
+    if 'rho_p' not in kwargs:
         kwargs['rho_p'] = 2650
 
     for i in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
@@ -125,7 +125,7 @@ def bend(v_m: float, rho_m: float, mu_m: float,
     :param GF: Geometry factor [-]
     :param D: Pipe diameter [m]
     :param d_p: Particle diameter [mm]
-    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
+    :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: get_materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
     :param crushed: True or False
     :return: Relative erosion rate [mm/ton]
