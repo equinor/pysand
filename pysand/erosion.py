@@ -99,10 +99,10 @@ def validate_inputs(**kwargs) -> bool:
             logger.warning('Height of the weld, h, must positive number not exceeding pipe inner diameter size, D')
 
     # choke gallery
-    for l in ['R_c', 'gap', 'H']:
-        if l in kwargs:
-            if not kwargs[l] > 0:
-                raise exc.FunctionInputFail('{} has to be larger than 0'.format(l))
+    for param in ['R_c', 'gap', 'H']:
+        if param in kwargs:
+            if not kwargs[param] > 0:
+                raise exc.FunctionInputFail(f'{param} has to be larger than 0')
     if 'R_c' in kwargs and 'gap' in kwargs:
         if kwargs['gap'] > kwargs['R_c']:
             raise exc.FunctionInputFail('The gap between the cage and choke body is larger than the radius')
