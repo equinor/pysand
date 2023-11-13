@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 import pysand.exceptions as exc
-from typing import TypedDict
+from typing import TypedDict, List
 
 logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
@@ -530,7 +530,7 @@ def get_material_properties(material: str) -> tuple[float, float, float, str]:
 
     return rho_t, K, n, angle_dependency
 
-def get_materials() -> list[str]:
+def get_materials() -> List[str]:
     """
     Function to return a list of all available materials
     """
