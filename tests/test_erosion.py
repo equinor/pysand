@@ -15,14 +15,14 @@ def test_validate_inputs(caplog):
     for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         for non_number in [None, 'string', np.nan]:
             kwargs[inp] = non_number
-            with pytest.raises(exc.FunctionInputFail) as excinfo:
+            with pytest.raises(exc.FunctionInputFail):
                 validate_inputs(**kwargs)
         kwargs[inp] = num
 
     kwargs = {'crushed': False}
     for non_bool in [None, 'string', np.nan]:
         kwargs['crushed'] = non_bool
-        with pytest.raises(exc.FunctionInputFail) as excinfo:
+        with pytest.raises(exc.FunctionInputFail):
             validate_inputs(**kwargs)
 
     # Test v_m boundaries
@@ -69,7 +69,7 @@ def test_validate_inputs(caplog):
     for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'alpha']:
         for non_number in [None, 'string', np.nan, pd.Series(dtype='float64').any()]:
             kwargs[inp] = non_number
-            with pytest.raises(exc.FunctionInputFail) as excinfo:
+            with pytest.raises(exc.FunctionInputFail):
                 validate_inputs(**kwargs)
         kwargs[inp] = num
 
@@ -146,7 +146,7 @@ def test_validate_inputs(caplog):
     kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
     for i in kwargs.keys():
         kwargs[i] = -1
-        with pytest.raises(exc.FunctionInputFail) as excinfo:
+        with pytest.raises(exc.FunctionInputFail):
             validate_inputs(**kwargs)
 
         kwargs['R_c'] = R_c
@@ -321,7 +321,7 @@ def test_F(a_rad, angle_dependency, E):
     assert F(a_rad, angle_dependency) == E
 
     angle_dependency = 'something_else'
-    with pytest.raises(exc.FunctionInputFail) as excinfo:
+    with pytest.raises(exc.FunctionInputFail):
         F(a_rad, angle_dependency)
 
 
