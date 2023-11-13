@@ -325,13 +325,18 @@ def test_F(a_rad, angle_dependency, E):
         F(a_rad, angle_dependency)
 
 
-# Material properties function #
+# Material properties function 
 material_validation = [('carbon_steel', (7800, 2e-9, 2.6, 'ductile')),
                        ('grp_epoxy', (1800, 3e-10, 3.6, 'ductile')),
                        ('psz_ceramic_zirconia', (5700, 4.1e-9, 2.5, 'brittle'))]
 @pytest.mark.parametrize('material, E', material_validation)
 def test_get_material_properties(material, E):
     assert get_material_properties(material) == E
+
+
+def test_get_material_properties_invalid_material():
+    with pytest.raises(exc.FunctionInputFail):
+        get_material_properties(material='invalid material')
 
 # Test material list and error raising
 def test_get_materials():
@@ -340,6 +345,7 @@ def test_get_materials():
                      'psz_ceramic_zirconia', 'ZrO2-Y3_ceramic_zirconia', 'SiC_silicon_carbide', 'Si3N4_silicon_nitride',
                      'TiB2_titanium_diboride', 'B4C_boron_carbide', 'SiSiC_ceramic_carbide']
     assert get_materials() == material_list
+
 
 def test_return_nan():
     v_m = 29.3
