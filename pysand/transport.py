@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 g = 9.80665  # Standard gravity [m/s^2]
 
 
-def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
+def hydro(D: float, rho_l: float, mu_l: float, d_p: float, e: float=5e-5, rho_p: float=2650) -> list[float, float]:
     """
     Equinor sand transport model for horizontal pipelines
-    Based on T. Søntvedt (1995) and R. Schulkes (2002) work in Hydro
+    Derivative work based off of T. Søntvedt (1995) and R. Schulkes (2002) work in Hydro.
     :param D: Pipe diameter [m]
     :param rho_l: Liquid density [kg/m3]
     :param mu_l: Dynamic liquid viscosity [Pa.s]
@@ -90,7 +90,7 @@ def hydro(D, rho_l, mu_l, d_p, e=5e-5, rho_p=2650):
     return result
 
 
-def stokes(rho_m, mu_m, d_p, angle, rho_p=2650):
+def stokes(rho_m: float, mu_m: float, d_p: float, angle: float, rho_p: float=2650) -> float:
     """
     Sand lifting rate calculation model for vertical or deviated (up to ~80 deg) inclination
     Based on Stokes law for settling velocities, but corrected for turbulent flow around sand grains

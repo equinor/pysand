@@ -4,7 +4,8 @@ import pandas as pd
 import pysand.exceptions as exc
 import logging
 from pysand.erosion import validate_inputs, bend, tee, straight_pipe, \
-    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, material_properties, erosion_rate, nozzlevalve_wall
+    welded_joint, manifold, reducer, probes, flexible, choke_gallery, F, \
+        get_material_properties, get_materials, erosion_rate, nozzlevalve_wall
 
 def test_validate_inputs(caplog):
 
@@ -14,14 +15,14 @@ def test_validate_inputs(caplog):
     for inp in ['v_m', 'rho_m', 'mu_m', 'Q_s']:
         for non_number in [None, 'string', np.nan]:
             kwargs[inp] = non_number
-            with pytest.raises(exc.FunctionInputFail) as excinfo:
+            with pytest.raises(exc.FunctionInputFail):
                 validate_inputs(**kwargs)
         kwargs[inp] = num
 
     kwargs = {'crushed': False}
     for non_bool in [None, 'string', np.nan]:
         kwargs['crushed'] = non_bool
-        with pytest.raises(exc.FunctionInputFail) as excinfo:
+        with pytest.raises(exc.FunctionInputFail):
             validate_inputs(**kwargs)
 
     # Test v_m boundaries
@@ -68,7 +69,7 @@ def test_validate_inputs(caplog):
     for inp in ['R', 'GF', 'D', 'd_p', 'h', 'Dm', 'D1', 'D2', 'alpha']:
         for non_number in [None, 'string', np.nan, pd.Series(dtype='float64').any()]:
             kwargs[inp] = non_number
-            with pytest.raises(exc.FunctionInputFail) as excinfo:
+            with pytest.raises(exc.FunctionInputFail):
                 validate_inputs(**kwargs)
         kwargs[inp] = num
 
@@ -99,10 +100,10 @@ def test_validate_inputs(caplog):
                 "Particle diameter, d_p, is outside RP-O501 model boundaries (0.02 - 5 mm)." in s.message for s in info)
 
     # Test geometry factor limitations
-    kwargs = {'GF': 6}
+    kwargs = {'GF': 0.5}
     with caplog.at_level(logging.WARNING):
         validate_inputs(**kwargs)
-    assert "Geometry factor, GF, can only be 1, 2, 3 or 4" in str(caplog.records)
+    assert "Geometry factor, GF, can only be 1 or higher" in str(caplog.records)
 
     # Test bend radius boundaries
     kwargs = {'R': 1}
@@ -145,7 +146,7 @@ def test_validate_inputs(caplog):
     kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
     for i in kwargs.keys():
         kwargs[i] = -1
-        with pytest.raises(exc.FunctionInputFail) as excinfo:
+        with pytest.raises(exc.FunctionInputFail):
             validate_inputs(**kwargs)
 
         kwargs['R_c'] = R_c
@@ -320,30 +321,31 @@ def test_F(a_rad, angle_dependency, E):
     assert F(a_rad, angle_dependency) == E
 
     angle_dependency = 'something_else'
-    with pytest.raises(exc.FunctionInputFail) as excinfo:
+    with pytest.raises(exc.FunctionInputFail):
         F(a_rad, angle_dependency)
 
 
-# Material properties function #
+# Material properties function 
 material_validation = [('carbon_steel', (7800, 2e-9, 2.6, 'ductile')),
                        ('grp_epoxy', (1800, 3e-10, 3.6, 'ductile')),
                        ('psz_ceramic_zirconia', (5700, 4.1e-9, 2.5, 'brittle'))]
 @pytest.mark.parametrize('material, E', material_validation)
-def test_material_properties(material, E):
-    assert material_properties(material) == E
+def test_get_material_properties(material, E):
+    assert get_material_properties(material) == E
+
+
+def test_get_material_properties_invalid_material():
+    with pytest.raises(exc.FunctionInputFail):
+        get_material_properties(material='invalid material')
 
 # Test material list and error raising
-def test_material():
+def test_get_materials():
     material_list = ['carbon_steel', 'duplex', 'ss316', 'inconel', 'grp_epoxy', 'grp_vinyl_ester', 'hdpe', 'aluminium',
                      'dc_05_tungsten', 'cs_10_tungsten', 'cr_37_tungsten', '95_alu_oxide', '99_alu_oxide',
                      'psz_ceramic_zirconia', 'ZrO2-Y3_ceramic_zirconia', 'SiC_silicon_carbide', 'Si3N4_silicon_nitride',
                      'TiB2_titanium_diboride', 'B4C_boron_carbide', 'SiSiC_ceramic_carbide']
-    material = 'list'
-    assert material_properties(material) == material_list
+    assert get_materials() == material_list
 
-    material = 'something_else'
-    with pytest.raises(exc.FunctionInputFail) as excinfo:
-        material_properties(material)
 
 def test_return_nan():
     v_m = 29.3
