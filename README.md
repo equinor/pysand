@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/equinor/pysand/master/resources/logo.png" align="center" title="pySand"/>
 
-[![PyPI](https://img.shields.io/pypi/v/pysand)](https://pypi.org/project/pysand/)
-![pySand Tests](https://github.com/equinor/pysand/actions/workflows/ci.yml/badge.svg)
+[![pypi](https://img.shields.io/pypi/v/pysand)](https://pypi.org/project/pysand/)
+![tests](https://github.com/equinor/pysand/actions/workflows/ci.yml/badge.svg)
 ![python](https://img.shields.io/pypi/pyversions/pysand)
 
 
