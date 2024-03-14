@@ -8,7 +8,7 @@
 PySand is a python package with sand management related calculations for oil and gas industry developed by Equinor.
 * Acoustic sand detectors standard calibration and quantification
 * Basic (black oil) fluid properties
-* DNVGL RP-O501 erosion rate calculations 
+* DNV RP-O501 erosion rate calculations 
 * ER probe sand quantification
 * Sand transport models
 
