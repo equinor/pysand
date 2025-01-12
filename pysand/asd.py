@@ -94,6 +94,10 @@ def sand_rate(raw: float, zero: float, step: float, exp: float=1) -> float:
             if Qs < 0:
                 logger.warning('Negative step. Sand rate set to NaN')
                 Qs = np.nan
+            elif zero == 0:
+                logger.warning('Zero value is 0. Sand rate set to NaN')
+                Qs = np.nan
+
     else:
         Qs = 0
 

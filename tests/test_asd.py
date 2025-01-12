@@ -77,3 +77,19 @@ def test_sand_rate_None_input():
         kwargs['zero'] = zero
         kwargs['step'] = step
         kwargs['exp'] = exp
+
+def test_zero_zero_input(caplog):
+    raw = 5000
+    zero = 0
+    step = 500
+    exp = 1
+    kwargs = {'raw': raw, 'zero': zero, 'step': step, 'exp': exp}
+
+    kwargs['raw'] = raw
+    kwargs['zero'] = zero
+    kwargs['step'] = step
+    kwargs['exp'] = exp
+
+    with caplog.at_level(logging.WARNING):
+        sand_rate(**kwargs)
+    assert "Zero value is 0. Sand rate set to NaN" in str(caplog.records)
