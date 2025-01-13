@@ -1,3 +1,6 @@
+## 1.8.1
+* Added case handling when zero value is 0
+
 ## 1.8
 * Implemented type hinting
 * Removed warning for geometry factors above 4
