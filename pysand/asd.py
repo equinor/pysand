@@ -12,11 +12,11 @@ def validate_asd(**kwargs: float) -> bool:
     for i in ['v_m', 'GLR', 'GOR']:
         if i in kwargs:
             if kwargs[i] is None:
-                raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(i))
+                raise exc.FunctionInputFail(f'No calculation is done due to missing {i}')
             if not isinstance(kwargs[i], (float, int, np.integer)):
-                raise exc.FunctionInputFail('{} is not a number'.format(i))
+                raise exc.FunctionInputFail(f'{i} is not a number')
             if not kwargs[i] >= 0:
-                logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
+                logger.warning(f'The model has got negative value(s) of {i} and returned nan.')
                 return True
 
 def std_step_clampon(v_m: float, GLR: float) -> float:
@@ -82,7 +82,7 @@ def sand_rate(raw: float, zero: float, step: float, exp: float=1) -> float:
 
     for key, value in {'raw': raw, 'zero': zero, 'step': step, 'exp': exp}.items():
         if value is None:
-            raise exc.FunctionInputFail('No calculation is done due to missing {}'.format(key))
+            raise exc.FunctionInputFail(f'No calculation is done due to missing {key}')
 
     if raw > zero:
         try:
