@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Sand management related calculations"
 readme = "README.md"
 license = { text = "GNU GPL" }
-authors = [{ name = "Equinor ASA", email = "stimo@equinor.com" }]
+authors = [{ name = "Equinor ASA", email = "sokw@equinor.com" }]
 requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = ["pandas", "numpy>=2.4.6", "scipy"]
