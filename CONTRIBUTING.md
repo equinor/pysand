@@ -50,6 +50,28 @@ Ready to contribute?
 your branch to GitHub
 7. Submit a pull request through the GitHub website
 
+### Development Environment
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency and
+environment management. After [installing uv](https://docs.astral.sh/uv/getting-started/installation/):
+
+```
+uv sync --all-extras --dev
+```
+
+This creates a virtual environment and installs the project together with
+its development dependencies. Run the test suite with:
+
+```
+uv run pytest -vv
+```
+
+To build the distribution artifacts:
+
+```
+uv build
+```
+
 ### Pull Request Guidelines
 
 Before you submit a pull request, check that it meets these guidelines:
