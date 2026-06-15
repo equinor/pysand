@@ -1,3 +1,8 @@
+## 2.0.0
+* Switched packaging and dependency management to `uv` with `pyproject.toml` (removed `setup.py` and `requirements.txt`)
+* Raised minimum Python version to 3.11
+* Raised minimum numpy version to 2.4.6
+
 ## 1.8.1
 * Added case handling when zero value is 0
 
