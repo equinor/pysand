@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pysand"
+dynamic = ["version"]
+description = "Sand management related calculations"
+readme = "README.md"
+license = { text = "GNU GPL" }
+authors = [{ name = "Equinor ASA", email = "stimo@equinor.com" }]
+requires-python = ">=3.11"
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = ["pandas", "numpy>=2.4.6", "scipy"]
+
+[project.urls]
+Homepage = "https://github.com/equinor/pysand"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.hatch.version]
+path = "pysand/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pysand"]
+
+[tool.hatch.build.targets.sdist]
+include = ["pysand", "README.md", "LICENSE", "changelog.md"]
