@@ -1,4 +1,4 @@
 ###### Requirements ######
 pandas
-numpy >= 1.17
+numpy >= 2.5.0
 scipy
