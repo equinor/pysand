@@ -1,4 +1,5 @@
 ## 2.0.0
+* Renamed the boolean `crushed` parameter to `crushed_fraction`, now a fraction (0-1) scaling erosion linearly from 1x at 0 to 3x at 1 (breaking change)
 * Switched packaging and dependency management to `uv` with `pyproject.toml` (removed `setup.py` and `requirements.txt`)
 * Raised minimum Python version to 3.11
 * Raised minimum numpy version to 2.4.6
