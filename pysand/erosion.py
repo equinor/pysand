@@ -6,7 +6,7 @@ from typing import TypedDict
 logger = logging.getLogger(__name__)
 # Models from DNVGL RP-O501, equation references in parenthesis
 
-def validate_inputs(**kwargs) -> bool:
+def validate_inputs(**kwargs) -> bool | None:
     """
     Validation of all input parameters that go into erosion models;
     Besides validating for illegal data input, model parameters are limited within RP-O501 boundaries:
@@ -41,10 +41,12 @@ def validate_inputs(**kwargs) -> bool:
                 logger.warning('The model has got negative value(s) of {} and returned nan.'.format(i))
                 return True
 
-    if 'crushed' in kwargs:
-        if not isinstance(kwargs['crushed'], bool):
-            i = kwargs['crushed']
-            raise exc.FunctionInputFail(f'Received {i} for crushed, which is not a boolean')
+    if 'crushed_fraction' in kwargs:
+        i = kwargs['crushed_fraction']
+        if isinstance(kwargs['crushed_fraction'], bool) or not isinstance(kwargs['crushed_fraction'], (int, float, np.integer)) or np.isnan(kwargs['crushed_fraction']):
+            raise exc.FunctionInputFail(f'Received {i} for crushed_fraction, which is not a number between 0 and 1')
+        if (kwargs['crushed_fraction'] < 0) or (kwargs['crushed_fraction'] > 1):
+            raise exc.FunctionInputFail(f'Received {i} for crushed_fraction, which is outside the valid range (0-1)')
 
     if 'v_m' in kwargs:
         if kwargs['v_m'] > 200:
@@ -113,9 +115,18 @@ def validate_inputs(**kwargs) -> bool:
             logger.warning('Particle diameter, d_p, is higher than CFD-study boundary (0.6 mm).')
 
 
+def crushed_factor(crushed_fraction: float) -> float:
+    """
+    Erosion scaling factor for crushed particles, linear from 1x at 0 to 3x at 1.
+    :param crushed_fraction: Fraction of crushed particles [-], 0 to 1
+    :return: Scaling factor [-]
+    """
+    return 1 + 2 * crushed_fraction
+
+
 def bend(v_m: float, rho_m: float, mu_m: float, 
          R: float, GF: float, D: float, d_p: float, 
-         material: str='duplex', rho_p: float=2650, crushed: bool=False) -> float:
+         material: str='duplex', rho_p: float=2650, crushed_fraction: float=0) -> float:
     '''
     Particle erosion in bends, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -127,12 +138,12 @@ def bend(v_m: float, rho_m: float, mu_m: float,
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: get_materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'R': R, 'GF': GF, 'D': D, 'd_p': d_p, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -158,15 +169,12 @@ def bend(v_m: float, rho_m: float, mu_m: float,
     # Calculate Relative surface thickness loss [mm/t] (4.34)
     E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * G * C1 * GF * 10 ** 6
 
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
 def tee(v_m: float, rho_m: float, mu_m: float, GF: float, 
         D: float, d_p: float, material: str='duplex', 
-        rho_p: float=2650, crushed: bool=False) -> float:
+        rho_p: float=2650, crushed_fraction: float=0) -> float:
     '''
     Particle erosion in blinded tees, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -177,12 +185,12 @@ def tee(v_m: float, rho_m: float, mu_m: float, GF: float,
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
     :param rho_p: Particle density [kg/m3], default = 2650 (quartz)
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: E: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'mu_m': mu_m, 'GF': GF, 'D': D, 'd_p': d_p, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -210,36 +218,30 @@ def tee(v_m: float, rho_m: float, mu_m: float, GF: float,
     G = (gamma/gamma_c)**c  # Particle size correction factor (4.44)
     At = np.pi / 4 * D ** 2  # Characteristic particle impact area [m2] (4.45)
     E_rel = K * v_m**n / (rho_t * At) * G * C1 * GF * 10 ** 6  # Relative surface thickness loss [mm/t] (4.34)
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
-def straight_pipe(v_m: float, D: float, crushed: bool=False) -> float:
+def straight_pipe(v_m: float, D: float, crushed_fraction: float=0) -> float:
     '''
     Particle erosion in smooth and straight pipes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
     :param D: Pipe diameter [m]
-    :param crushed: True or False 
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: E_rel: Relative erosion [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'D': D}
+    kwargs = {'v_m': v_m, 'D': D, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
     C_unit = 1000 * 3600 * 24 * 365.25
     E_rel = 2.5e-5 * v_m**2.6 * D**(-2) * (1e6/C_unit)
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
 def welded_joint(v_m: float, rho_m: float, D: float, d_p: float, 
                  h: float, alpha: float=60, location: str='downstream', 
-                 material: str='duplex', crushed: bool=False) -> float:
+                 material: str='duplex', crushed_fraction: float=0) -> float:
     '''
     Particle erosion in welded joints, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -250,13 +252,13 @@ def welded_joint(v_m: float, rho_m: float, D: float, d_p: float,
     :param alpha: particle impact angle [degrees], default = 60
     :param location: Erosion calculation locations 'downstream' or 'upstream' of weld, default = 'downstream'
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: E_up: Relative erosion at flow facing part of weld [mm/ton]
     :return: E_down: Relative erosion downstream of weld [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h, 'alpha': alpha}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'h': h, 'alpha': alpha, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -273,23 +275,17 @@ def welded_joint(v_m: float, rho_m: float, D: float, d_p: float,
         C2 = 1
     if location == 'downstream':
         E_down = 3.3e-2 * (7.5e-4 + h) * v_m**n * D**(-2) * (1e6/C_unit)
-        if crushed:
-            return E_down*3
-        else:
-            return E_down
+        return E_down * crushed_factor(crushed_fraction)
     elif location == 'upstream':
         E_up = K * F(a_rad, ad) * v_m ** n * np.sin(a_rad) / (rho_t * A_pipe) * C2 * 10**6
-        if crushed:
-            return E_up*3
-        else:
-            return E_up
+        return E_up * crushed_factor(crushed_fraction)
     else:
         raise exc.FunctionInputFail('Location must be either downstream or upstream. {} is passed.'.format(location))
 
 
 def manifold(v_m: float, rho_m: float, mu_m: float, GF: float, 
              D: float, d_p: float, Dm: float, rho_p: float=2650, 
-             material: str='duplex', crushed: bool=False) -> float:
+             material: str='duplex', crushed_fraction: float=0) -> float:
     '''
     Manifold model, pending inclusion in DNVGL RP-O501. Velocity and fluid properties in branch line.
     :param v_m: Mix velocity [m/s]
@@ -300,7 +296,7 @@ def manifold(v_m: float, rho_m: float, mu_m: float, GF: float,
     :param d_p: Particle diameter [mm]
     :param Dm: Manifold diameter [m]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Manifold relative erosion rate [mm/ton]
     '''
 
@@ -310,12 +306,12 @@ def manifold(v_m: float, rho_m: float, mu_m: float, GF: float,
         return np.nan
 
     R = Dm / D - 0.5  # Synthetic bend radius
-    return bend(v_m, rho_m, mu_m, R, GF, D, d_p, rho_p=rho_p, material=material, crushed=crushed)  # Relative surface thickness loss [mm/t]
+    return bend(v_m, rho_m, mu_m, R, GF, D, d_p, rho_p=rho_p, material=material, crushed_fraction=crushed_fraction)  # Relative surface thickness loss [mm/t]
 
 
 def reducer(v_m: float, rho_m: float, D1: float, D2: float, 
             d_p: float, GF: float=2, alpha: float=60, 
-            material: str='duplex', crushed: bool=False) -> float:
+            material: str='duplex', crushed_fraction: float=0) -> float:
     '''
     Particle erosion in reducers, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -326,12 +322,12 @@ def reducer(v_m: float, rho_m: float, D1: float, D2: float,
     :param GF: Geometry factor [-], default = 2
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Reducer relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p, 'alpha': alpha}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D1': D1, 'D2': D2, 'GF': GF, 'd_p': d_p, 'alpha': alpha, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -350,13 +346,10 @@ def reducer(v_m: float, rho_m: float, D1: float, D2: float,
 
     E_rel = K * F(a_rad, ad) * Up**n / (rho_t * At) * Aratio * C2 * GF * 10**6  # Relative surface thickness loss [mm/t]
 
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 def probes(v_m: float, rho_m: float, D: float, d_p: float, 
-           alpha: float=60, material: str='duplex', crushed: bool=False) -> float:
+           alpha: float=60, material: str='duplex', crushed_fraction: float=0) -> float:
     '''
     Particle erosion for intrusive erosion probes, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -365,12 +358,12 @@ def probes(v_m: float, rho_m: float, D: float, d_p: float,
     :param d_p: Particle diameter [mm]
     :param alpha: particle impact angle [degrees], default = 60 (worst case scenario)
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Relative erosion rate [mm/ton]
     '''
 
     # Input validation
-    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'alpha': alpha}
+    kwargs = {'v_m': v_m, 'rho_m': rho_m, 'D': D, 'd_p': d_p, 'alpha': alpha, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -387,14 +380,11 @@ def probes(v_m: float, rho_m: float, D: float, d_p: float,
 
     E_rel = K * F(a_rad, ad) * v_m ** n / (rho_t * At) * C2 * 10**6  # Relative surface thickness loss [mm/t]
 
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
 def flexible(v_m: float, rho_m: float, mu_m: float, mbr: float, 
-             D: float, d_p: float, material: str='duplex', crushed: bool=False) -> float:
+             D: float, d_p: float, material: str='duplex', crushed_fraction: float=0) -> float:
     """
     Particle erosion for flexible pipes with interlock carcass, model reference to DNVGL RP-O501, August 2015
     :param v_m: Mix velocity [m/s]
@@ -404,21 +394,18 @@ def flexible(v_m: float, rho_m: float, mu_m: float, mbr: float,
     :param D: Minimum internal diameter for the interlock carcass [m]
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex' (duplex steel). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Relative erosion rate [mm/ton]
     """
 
     GF = 2
     E_rel = bend(v_m, rho_m, mu_m, mbr, GF, D, d_p, material=material)  # Relative surface thickness loss [mm/t]
 
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
 def choke_gallery(v_m: float, rho_m: float, mu_m: float, GF: float, D: float, d_p: float, 
-                  R_c: float, gap: float, H: float, material: str='cr_37_tungsten', crushed: bool=False) -> float:
+                  R_c: float, gap: float, H: float, material: str='cr_37_tungsten', crushed_fraction: float=0) -> float:
     """
     Particle erosion for angle style choke gallery, model reference to DNVGL RP-O501, August 2015
     :param v_m: Upstream mix velocity [m/s]
@@ -431,11 +418,11 @@ def choke_gallery(v_m: float, rho_m: float, mu_m: float, GF: float, D: float, d_
     :param gap: Gap between the cage and choke body [m]
     :param H: Height (effective) of gallery [m]
     :param material: Material exposed to erosion, default = 'cr-37_tungsten' (CR-37 Tungsten Carbide). For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Relative erosion rate [mm/ton]
     """
 
-    kwargs = {'R_c': R_c, 'gap': gap, 'H': H}
+    kwargs = {'R_c': R_c, 'gap': gap, 'H': H, 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
 
@@ -447,14 +434,11 @@ def choke_gallery(v_m: float, rho_m: float, mu_m: float, GF: float, D: float, d_
     R = R_c/gap  # Checked with DNVGL on e-mail 23.08.17
 
     # Relative surface thickness loss [mm/t]
-    E_rel = bend(v_c, rho_m, mu_m, R, GF, gap, d_p, material=material, crushed=False) / C1_bend * C1_choke
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    E_rel = bend(v_c, rho_m, mu_m, R, GF, gap, d_p, material=material, crushed_fraction=0) / C1_bend * C1_choke
+    return E_rel * crushed_factor(crushed_fraction)
 
 
-def nozzlevalve_wall(v_m: float, d_p: float, GF: float, At: float, material: str='duplex', crushed: bool=False) -> float:
+def nozzlevalve_wall(v_m: float, d_p: float, GF: float, At: float, material: str='duplex', crushed_fraction: float=0) -> float:
     """
     Particle valve wall erosion for non-slam nozzle type check-valve. Based on DNVGL CFD-study of Johan Sverdrup Phase 1 check-valves (13.01.2020)
     Report No: 2019-1237 Rev.1, Document No: 547341
@@ -463,11 +447,11 @@ def nozzlevalve_wall(v_m: float, d_p: float, GF: float, At: float, material: str
     :param At: Target area [m²]. Set to minimum flow area of the valve. 
     :param d_p: Particle diameter [mm]
     :param material: Material exposed to erosion, default = 'duplex'. For others, run: materials()
-    :param crushed: True or False
+    :param crushed_fraction: Fraction of crushed particles [-], 0 (no scaling, 1x) to 1 (3x), default = 0
     :return: Relative erosion rate [mm/ton]
     """
     # Input validation
-    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At, 'model': 'nozzlevalve_wall'}
+    kwargs = {'v_m': v_m, 'd_p': d_p, 'GF': GF, 'At': At, 'model': 'nozzlevalve_wall', 'crushed_fraction': crushed_fraction}
     if validate_inputs(**kwargs):
         return np.nan
     
@@ -476,10 +460,7 @@ def nozzlevalve_wall(v_m: float, d_p: float, GF: float, At: float, material: str
 
     E_rel = K * v_m ** n / (2 * rho_t * At) * C1 * GF * 10 ** 6 # Relative surface thickness loss [mm/t]
     
-    if crushed:
-        return E_rel*3
-    else:
-        return E_rel
+    return E_rel * crushed_factor(crushed_fraction)
 
 
 class MaterialInfo(TypedDict):
@@ -490,7 +471,7 @@ class MaterialInfo(TypedDict):
     name: str
 
 
-material_dict: dict[str: MaterialInfo] = {
+material_dict: dict[str, MaterialInfo] = {
                 'carbon_steel':             {'rho_t': 7800, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Carbon steel'},
                 'duplex':                   {'rho_t': 7850, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'Duplex'},
                 'ss316':                    {'rho_t': 8000, 'K': 2e-9, 'n': 2.6, 'angle_dependency': 'ductile', 'name': 'SS316'},
